@@ -16,7 +16,7 @@
  *******************************************************************************/
 package com.hotstepper13.alexa;
 
-public class AlexaGiraBridge {
+public class GiraBridge {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
