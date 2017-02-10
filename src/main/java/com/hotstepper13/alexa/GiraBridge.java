@@ -16,11 +16,47 @@
  *******************************************************************************/
 package com.hotstepper13.alexa;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.hotstepper13.alexa.configuration.Config;
+import com.hotstepper13.alexa.gira.Discovery;
+
+import ch.qos.logback.classic.Level;
+
 public class GiraBridge {
 
+	private final static Logger log = LoggerFactory.getLogger(GiraBridge.class);
+	private static Config config;
+	
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
+		if( args.length >= 4 && args[3].equals("debug")) {
+			ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
+	    root.setLevel(Level.DEBUG);
+		}
+		if( args.length >= 3 ) {
+			GiraBridge.config = new Config(args[0],args[1],args[2]);
+		} else {
+			log.error("Not enough parameters provided!");
+			GiraBridge.usage();
+		}
+		
+		Discovery discovery = new Discovery();
+		
 	}
 
+	private static void usage() {
+		System.out.println("");
+		System.out.println("Usage:");
+		System.out.println("");
+		System.out.println("java -jar <jarfile> <homeserverIp> <homeserverPort> <token> (Optional: debug)");
+		System.out.println("");
+		System.out.println("To start regular (Info logging):");
+		System.out.println("java -jar GiraBridge.jar 192.168.0.15 30000 superCOOLpassword");
+		System.out.println("");
+		System.out.println("To start in debug mode just add \"debug\":");
+		System.out.println("java -jar GiraBridge.jar 192.168.0.15 30000 superCOOLpassword debug");
+		System.out.println("");
+	}
+	
 }
