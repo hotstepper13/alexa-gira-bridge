@@ -30,12 +30,13 @@ Hint: The Software will start in foreground. If you close the terminal or hit CT
 I assume most people running this software are able to send a process to background, therefore this topic might be handled later.
 
 If you want to run the software by yourself:
+
 `java -jar <jarfile> --homeserver-ip <homeserverIp> --homeserver-port <homeserverPort> --token <token> (Optional: --debug true)`
 
 # Planned / Roadmap
 - Dimming
 - Temperature (Maybe have to look around for a useful api) 
-- Enhanced Configuration options
+- update devices without restarting (with a voice command?!)
 
 # Workflow
 - As soon as the application is started, it will connect to the gira homeserver via TCP, fetch the devicelist and build an internal device structure.
