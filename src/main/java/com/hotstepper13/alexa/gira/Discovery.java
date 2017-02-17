@@ -16,24 +16,9 @@
  *******************************************************************************/
 package com.hotstepper13.alexa.gira;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.Iterator;
 
-import org.apache.http.util.EntityUtils;
-import org.apache.http.ssl.SSLContextBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +27,7 @@ import com.hotstepper13.alexa.configuration.Config;
 import com.hotstepper13.alexa.configuration.Constants;
 import com.hotstepper13.alexa.gira.beans.Appliance;
 import com.hotstepper13.alexa.gira.beans.DiscoveryItem;
+import com.hotstepper13.alexa.network.Util;
 
 public class Discovery {
 
@@ -68,49 +54,38 @@ public class Discovery {
 	private void fetchDiscoverySSL() {
 		log.debug("Fetching Objects from Homeserver using url: " + this.discovery_url);
 
-    try {
-  		SSLContextBuilder builder = new SSLContextBuilder();
-    	builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
-	
-	    SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
-	    CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
-	
-	    HttpGet httpGet = new HttpGet(this.discovery_url);
-	    CloseableHttpResponse response = httpclient.execute(httpGet);
-	    try {
-	    	if( response.getStatusLine().getStatusCode() == HttpStatus.SC_OK ) {
-	        HttpEntity entity = response.getEntity();
-	        this.objectJson = EntityUtils.toString(entity);
-	        log.debug("Received catalog: " + objectJson);
-	    	} else {
-	    		log.error("Request not successful. StatusCode was " + response.getStatusLine().getStatusCode());
-	    	}
-	    }
-	    finally {
-        response.close();
-	    }
-		} catch (IOException | KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
-			log.error("Error executing the request.", e);
-		}
+		this.objectJson = Util.triggerHttpGetWithCustomSSL(this.discovery_url);
+
 	}
 
 	private void parseDiscoveryResponse() {
 		Gson gson = new Gson();
 		this.discoveryItem = gson.fromJson(this.objectJson, DiscoveryItem.class);
 		log.info("Discoverered " + this.discoveryItem.getPayload().getDiscoveredAppliances().size() + " items from Homeserver");
-		if(log.isDebugEnabled()) {
-			Iterator<Appliance> appliances = this.discoveryItem.getPayload().getDiscoveredAppliances().iterator();
-			while(appliances.hasNext()) {
-				Appliance item = (Appliance)appliances.next();
-				log.debug(item.getFriendlyName() + " with id " + item.getApplianceId() + " has the following actions: ");
-				Iterator<Appliance.Actions> actions = item.getActions().iterator();
-				while(actions.hasNext()) {
-					Appliance.Actions action = (Appliance.Actions)actions.next();
-					log.debug("  * " + action.name());
-				}
-				
+		Iterator<Appliance> appliances = this.discoveryItem.getPayload().getDiscoveredAppliances().iterator();
+		while(appliances.hasNext()) {
+			Appliance item = (Appliance)appliances.next();
+			log.info(item.getFriendlyName() + " with id " + item.getApplianceId() + " has the following actions: ");
+			Iterator<Appliance.Actions> actions = item.getActions().iterator();
+			while(actions.hasNext()) {
+				Appliance.Actions action = (Appliance.Actions)actions.next();
+				log.info("  * " + action.name());
 			}
 		}
 	}
+
+	public String getObjectJson() {
+		return objectJson;
+	}
+
+	public String getDiscovery_url() {
+		return discovery_url;
+	}
+
+	public DiscoveryItem getDiscoveryItem() {
+		return discoveryItem;
+	}
+
+	
 	
 }

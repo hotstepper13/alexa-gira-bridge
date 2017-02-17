@@ -21,15 +21,18 @@ import org.slf4j.LoggerFactory;
 
 import com.hotstepper13.alexa.configuration.Config;
 import com.hotstepper13.alexa.gira.Discovery;
+import com.hotstepper13.alexa.network.TcpServer;
+import com.hotstepper13.alexa.network.upnp.UpnpServer;
 
 import ch.qos.logback.classic.Level;
 
 public class GiraBridge {
 
 	private final static Logger log = LoggerFactory.getLogger(GiraBridge.class);
-	private static Config config;
+	public static Config config;
+	private final static int port = 80;
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 		if( args.length >= 4 && args[3].equals("debug")) {
 			ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
 	    root.setLevel(Level.DEBUG);
@@ -40,9 +43,17 @@ public class GiraBridge {
 			log.error("Not enough parameters provided!");
 			GiraBridge.usage();
 		}
-		
+
+		// Start the discovery process
 		Discovery discovery = new Discovery();
+
+		// Start a TCP Server for echo <-> Hue communication
+		TcpServer tcp = new TcpServer(GiraBridge.port, discovery.getDiscoveryItem().getPayload().getDiscoveredAppliances());
 		
+		// Start UPNP Server for discovery process
+		UpnpServer upnpServer = new UpnpServer(tcp.getAddress(),GiraBridge.port);
+		upnpServer.start();
+	
 	}
 
 	private static void usage() {
@@ -58,5 +69,6 @@ public class GiraBridge {
 		System.out.println("java -jar GiraBridge.jar 192.168.0.15 30000 superCOOLpassword debug");
 		System.out.println("");
 	}
+	
 	
 }

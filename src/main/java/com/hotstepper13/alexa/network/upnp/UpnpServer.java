@@ -1,0 +1,80 @@
+package com.hotstepper13.alexa.network.upnp;
+
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.net.MulticastSocket;
+import java.text.MessageFormat;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.hotstepper13.alexa.configuration.Constants;
+import com.hotstepper13.alexa.network.UDPSender;
+import com.hotstepper13.alexa.network.Util;
+
+public class UpnpServer extends Thread {
+
+	private final static Logger log = LoggerFactory.getLogger(UpnpServer.class);
+	private boolean terminated = false;
+	private MulticastSocket msocket = null;
+	private String address;
+	private int port;
+	
+	public UpnpServer(String address, int port) {
+		this.address = address;
+		this.port = port;
+	}
+
+  public void run(){
+    try {
+    	InetAddress multicastAddress = InetAddress.getByName(Constants.MULTICAST_ADDRESS); 
+      this.msocket = new MulticastSocket(Constants.SSDP_PORT); 
+      this.msocket.setReuseAddress(true);
+      this.msocket.joinGroup(multicastAddress);
+      byte[] buffer = new byte[2048];
+      DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+      while (!this.terminated) {
+      	this.msocket.receive(packet);
+      	String message = new String(packet.getData(), "UTF-8" );
+      	if(message.contains("M-SEARCH")) {
+        	log.debug("Received Search Request from " + packet.getSocketAddress().toString() + ":\n" + message);
+        	if(this.checkSearch(message) && packet.getPort() == 50000) {
+      			log.info("DiscoveryResponse needed");
+      			this.sendDiscoveryResponse(packet.getAddress(), packet.getPort());
+        	}
+      	}
+        // Reset the length of the packet before reusing it.
+        packet.setLength(buffer.length);
+      }
+    } catch (IOException e) {
+			log.error("Error while listening for UDP packages",e);
+		} finally {
+			this.msocket.close();
+		}
+  }
+
+	public void terminate() {
+		this.terminated = true;
+	}
+  
+  private boolean checkSearch(String message) {
+  	if(message.contains(Constants.SSDP_DISCOVER_STRING) && message.contains(Constants.SSDP_DISCOVER_URN)) {
+  		log.debug("Found potential Alexa Discovery Request");
+  		return true;
+  	}
+  	return false;
+  }
+  
+  private void sendDiscoveryResponse(InetAddress requestAddress, int requestPort) {
+		Object[] response_params = new Object[]{this.address,""+this.port,Util.getHueBridgeIdFromMac(this.address),Util.getSNUUIDFromMac(this.address)};
+		UDPSender us = new UDPSender(requestAddress.getHostAddress(), requestPort);
+		us.sendMessage(MessageFormat.format(Constants.responseTemplate1, response_params));
+		us.sendMessage(MessageFormat.format(Constants.responseTemplate2, response_params));
+		us.sendMessage(MessageFormat.format(Constants.responseTemplate3, response_params));
+		//us.sendMessage(MessageFormat.format(Constants.responseTemplate1, response_params);
+  	
+  	
+  }
+	
+}
