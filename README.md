@@ -21,7 +21,6 @@ Execute without parameters to get usage information
 
 # Running
 - ensure that java can be found in path (test with "java --version")
-
 - Download a releaseversion suitable for your environment (linux/windows)
 - extract to a local directory
 - edit the startscript for your system (*.bat for windows and *.sh for linux) and add your details
@@ -31,7 +30,7 @@ Hint: The Software will start in foreground. If you close the terminal or hit CT
 I assume most people running this software are able to send a process to background, therefore this topic might be handled later.
 
 If you want to run the software by yourself:
-java -jar <jarfile> --homeserver-ip <homeserverIp> --homeserver-port <homeserverPort> --token <token> (Optional: --debug true)
+`java -jar <jarfile> --homeserver-ip <homeserverIp> --homeserver-port <homeserverPort> --token <token> (Optional: --debug true)`
 
 # Planned / Roadmap
 - Dimming
