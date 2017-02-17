@@ -1,3 +1,6 @@
+# Status
+[![Build Status](https://travis-ci.org/hotstepper13/alexa-gira-bridge.svg?branch=master)](https://travis-ci.org/hotstepper13/alexa-gira-bridge)
+
 # alexa-gira-bridge
 This is a proof of concept / personal application for device discovery using Hue IDs in order to connect with a custom logic module inside the Gira Homeserver in your local network without the need to any lamdba node or internet communication beside the alexa voice services itself.
 
