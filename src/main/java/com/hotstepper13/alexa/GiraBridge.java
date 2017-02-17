@@ -30,7 +30,7 @@ public class GiraBridge {
 
 	private final static Logger log = LoggerFactory.getLogger(GiraBridge.class);
 	public static Config config;
-	private final static int port = 80;
+	private final static int port = 4711;
 	
 	public static void main(String[] args) throws InterruptedException {
 		if( args.length >= 4 && args[3].equals("debug")) {
