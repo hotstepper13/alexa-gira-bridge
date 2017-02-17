@@ -33,15 +33,32 @@ public class GiraBridge {
 	private final static int port = 4711;
 	
 	public static void main(String[] args) throws InterruptedException {
-		if( args.length >= 4 && args[3].equals("debug")) {
-			ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
-	    root.setLevel(Level.DEBUG);
+		
+		GiraBridge.config = new Config();
+		
+		for(int i=0; i<args.length;i++) {
+			if(args[i].equals("--homeserver-ip")) {
+				i++;
+				Config.setHomeserverIp(args[i]);
+			} else if(args[i].equals("--homeserver-port")) {
+				i++;
+				Config.setHomeserverPort(args[i]);
+			} else if(args[i].equals("--token")) {
+				i++;
+				Config.setToken(args[i]);
+			} else if(args[i].equals("--debug")) {
+				i++;
+				if(new Boolean(args[i]).booleanValue()) {
+					ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
+					root.setLevel(Level.DEBUG);
+				}
+			}
 		}
-		if( args.length >= 3 ) {
-			GiraBridge.config = new Config(args[0],args[1],args[2]);
-		} else {
+
+		if(!Config.isSetup()) {
 			log.error("Not enough parameters provided!");
 			GiraBridge.usage();
+			System.exit(1);
 		}
 
 		// Start the discovery process
@@ -59,14 +76,13 @@ public class GiraBridge {
 	private static void usage() {
 		System.out.println("");
 		System.out.println("Usage:");
-		System.out.println("");
-		System.out.println("java -jar <jarfile> <homeserverIp> <homeserverPort> <token> (Optional: debug)");
+		System.out.println("java -jar <jarfile> --homeserver-ip <homeserverIp> --homeserver-port <homeserverPort> --token <token> (Optional: --debug true)");
 		System.out.println("");
 		System.out.println("To start regular (Info logging):");
-		System.out.println("java -jar GiraBridge.jar 192.168.0.15 30000 superCOOLpassword");
+		System.out.println("java -jar GiraBridge-jar-with-dependencies.jar --homeserver-ip 192.168.0.15 --homeserver-port 30000 --token superCOOLpassword");
 		System.out.println("");
-		System.out.println("To start in debug mode just add \"debug\":");
-		System.out.println("java -jar GiraBridge.jar 192.168.0.15 30000 superCOOLpassword debug");
+		System.out.println("To start in debug mode just add \"--debug true\" (token/passwords will be visible!):");
+		System.out.println("java -jar GiraBridge-jar-with-dependencies.jar --homeserver-ip 192.168.0.15 --homeserver-port 30000 --token superCOOLpassword --debug true");
 		System.out.println("");
 	}
 	

@@ -27,18 +27,25 @@ public class Config {
 	
 	private final static Logger log = LoggerFactory.getLogger(Config.class);
 	
+	public Config() {
+		
+	}
 	
-	public Config(String homeserverIp, String homeserverPort, String token) {
-		Config.homeserverIp = homeserverIp;
-		Config.homeserverPort = homeserverPort;
-		Config.token = token;
-		log.info("Initialized config");
-		log.info("HomeserverIp: " + Config.homeserverIp);
-		log.info("HomeserverPort: " + Config.homeserverPort);
-		if(log.isDebugEnabled()) {
-			log.debug("Token: " + Config.token);
+	public static boolean isSetup() {
+		if(Config.homeserverIp != null && !Config.homeserverIp.equals("") && 
+				Config.homeserverPort != null && !Config.homeserverPort.equals("") &&
+				Config.token != null && !Config.token.equals("")) {
+			log.info("Initialized config");
+			log.info("HomeserverIp: " + Config.homeserverIp);
+			log.info("HomeserverPort: " + Config.homeserverPort);
+			if(log.isDebugEnabled()) {
+				log.debug("Token: " + Config.token);
+			} else {
+				log.info("Token: " + Config.token.replaceAll(".", "*") + " (Hint: enable debug to show cleartext!)");
+			}
+			return true;	 
 		} else {
-			log.info("Token: " + Config.token.replaceAll(".", "*") + " (Hint: enable debug to show cleartext!)");
+			return false;
 		}
 	}
 
@@ -52,6 +59,18 @@ public class Config {
 
 	public static String getToken() {
 		return token;
+	}
+
+	public static void setHomeserverIp(String homeserverIp) {
+		Config.homeserverIp = homeserverIp;
+	}
+
+	public static void setHomeserverPort(String homeserverPort) {
+		Config.homeserverPort = homeserverPort;
+	}
+
+	public static void setToken(String token) {
+		Config.token = token;
 	}
 
 	

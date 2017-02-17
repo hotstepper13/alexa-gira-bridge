@@ -19,6 +19,20 @@ Execute without parameters to get usage information
 - If you have a push button activated device (like a scene) in your Gira Homeserver, be sure to attach it with Objecttype "on" or "off" instead of "onOff". The bridge will recognize it and send the correct command to trigger it.
 - If you want to operate this software on a windows pc you must disable locally running upnp services. On windows 10 you have to change a registry value and reboot your system!
 
+# Running
+- ensure that java can be found in path (test with "java --version")
+
+- Download a releaseversion suitable for your environment (linux/windows)
+- extract to a local directory
+- edit the startscript for your system (*.bat for windows and *.sh for linux) and add your details
+- execute the script
+
+Hint: The Software will start in foreground. If you close the terminal or hit CTRL+C the application will be stopped.
+I assume most people running this software are able to send a process to background, therefore this topic might be handled later.
+
+If you want to run the software by yourself:
+java -jar <jarfile> --homeserver-ip <homeserverIp> --homeserver-port <homeserverPort> --token <token> (Optional: --debug true)
+
 # Planned / Roadmap
 - Dimming
 - Temperature (Maybe have to look around for a useful api) 
