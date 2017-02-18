@@ -1,4 +1,12 @@
 language: java
 jdk:
   - oraclejdk8
-  
+
+deploy:
+  provider: releases
+  api_key: $GH_TOKEN
+  file: "target/*-generated-artifacts.*"
+  file_glob: true
+  skip_cleanup: true
+  on:
+    tags: true
