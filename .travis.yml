@@ -6,8 +6,7 @@ deploy:
   provider: releases
   api_key: $GH_TOKEN
   file: 
-    - "target/*-generated-artifacts.zip"
-    - "target/*-generated-artifacts.tar.gz"
+    - "target/dist/*"
   skip_cleanup: true
   on:
     tags: true
