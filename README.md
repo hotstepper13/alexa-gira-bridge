@@ -19,12 +19,13 @@ Execute without parameters to get usage information
 - If you have a push button activated device (like a scene) in your Gira Homeserver, be sure to attach it with Objecttype "on" or "off" instead of "onOff". The bridge will recognize it and send the correct command to trigger it.
 - If you want to operate this software on a windows pc you must disable locally running upnp services. On windows 10 you have to change a registry value and reboot your system!
 
-## Running
+## Running / "Installation"
 - ensure that java can be found in path (test with "java --version")
 - Download a releaseversion suitable for your environment (linux/windows)
 - extract to a local directory
 - edit the startscript for your system (*.bat for windows and *.sh for linux) and add your details
 - execute the script
+- As soon as everything is started, tell your Echo "Alexa, find my devices"
 
 Hint: The Software will start in foreground. If you close the terminal or hit CTRL+C the application will be stopped.
 I assume most people running this software are able to send a process to background, therefore this topic might be handled later.
