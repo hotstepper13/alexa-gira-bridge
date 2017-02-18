@@ -16,5 +16,15 @@
 @rem ***************************************************************************
 @ECHO OFF
 
-java -jar gira-bridge-${project.version}-jar-with-dependencies.jar 
+
+@rem add your details after the equals
+SET HOMESERVER_IP=
+SET HOMESERVER_PORT=
+SET TOKEN=
+SET DEBUG=false
+
+@rem DO NOT EDIT BELOW THIS LINE UNLESS YOU KNOW WHAT YOU ARE DOING
+
+
+java -jar gira-bridge-${project.version}-jar-with-dependencies.jar --homeserver-ip %HOMESERVER_IP% --homeserver-port %HOMESERVER_PORT% --token %TOKEN%
 

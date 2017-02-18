@@ -16,5 +16,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #*******************************************************************************
 
-java -jar gira-bridge-${project.version}-jar-with-dependencies.jar 
+#
+# add your details after the equals
+#
+HOMESERVER_IP=
+HOMESERVER_PORT=
+TOKEN=
+DEBUG=false
+
+# DO NOT EDIT BELOW THIS LINE UNLESS YOU KNOW WHAT YOU ARE DOING
+
+
+java -jar gira-bridge-${project.version}-jar-with-dependencies.jar --homeserver-ip ${HOMESERVER_IP} --homeserver-port ${HOMESERVER_PORT} --token ${TOKEN}
 
