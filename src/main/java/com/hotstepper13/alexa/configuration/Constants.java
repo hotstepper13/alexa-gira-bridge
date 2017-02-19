@@ -24,6 +24,7 @@ public class Constants {
 	public final static String SSDP_DISCOVER_STRING = "ssdp:discover";
 	public final static String SSDP_DISCOVER_URN = "urn:schemas-upnp-org:device:basic:1";
 	public final static String GIRA_REQUEST_TEMPLATE = "https://{0}:{1}/control?applianceId={2}&request={3}&accessToken={4}&messageId=xyz";
+	public final static String GIRA_REQUEST_VALUE_TEMPLATE = "https://{0}:{1}/control?applianceId={2}&request={3}&accessToken={4}&value={5}&messageId=xyz";
 	
 	/**
 	 * The following constants were taken from https://github.com/bwssytems/ha-bridge
