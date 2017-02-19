@@ -26,5 +26,5 @@ SET DEBUG=false
 @rem DO NOT EDIT BELOW THIS LINE UNLESS YOU KNOW WHAT YOU ARE DOING
 
 
-java -jar gira-bridge-${project.version}-jar-with-dependencies.jar --homeserver-ip %HOMESERVER_IP% --homeserver-port %HOMESERVER_PORT% --token %TOKEN%
+java -jar gira-bridge-${project.version}-jar-with-dependencies.jar --homeserver-ip %HOMESERVER_IP% --homeserver-port %HOMESERVER_PORT% --token %TOKEN% --debug %DEBUG%
 

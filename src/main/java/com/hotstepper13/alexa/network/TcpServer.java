@@ -47,6 +47,7 @@ public class TcpServer{
 	private Gson gson;
 	
 	public TcpServer(int port, List<Appliance> appliances) {
+		System.setProperty("java.net.preferIPv4Stack" , "true");
 		this.appliances = new ArrayList<Appliance>(appliances);
 		this.port = port;
 		this.trigger = new Trigger(this.appliances);
