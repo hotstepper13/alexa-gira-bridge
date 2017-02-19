@@ -18,13 +18,45 @@
 
 #
 # add your details after the equals
+# if you have done this before, the settings should
+# be saved in the home directory of the run user
 #
+
+# These settings may be read from file ~/.gira-bridge/settings.conf
 HOMESERVER_IP=
 HOMESERVER_PORT=
 TOKEN=
+
+# This setting will always be read from this configuration
 DEBUG=false
 
-# DO NOT EDIT BELOW THIS LINE UNLESS YOU KNOW WHAT YOU ARE DOING
+#####################################################################################################
+# DO NOT EDIT BELOW THIS LINE UNLESS YOU KNOW WHAT YOU ARE DOING                                    #
+#####################################################################################################
+
+SAVE_CONFIG_DIR=~/.gira-bridge
+SAVE_CONFIG_FILE=${SAVE_CONFIG_DIR}/settings.conf
+
+if [ -f ${SAVE_CONFIG_FILE} ] ; then
+  echo "Loading config from  ${SAVE_CONFIG_FILE}"
+  source ${SAVE_CONFIG_FILE}
+fi
+
+if [ ! -d ${SAVE_CONFIG_DIR} ] ; then
+  echo "Create configuration directory ${SAVE_CONFIG_DIR}"
+  mkdir ${SAVE_CONFIG_DIR}
+fi
+
+if [ ! -f ${SAVE_CONFIG_FILE} ] ; then
+  if [ -n "${HOMESERVER_IP}" ] && [ -n "${HOMESERVER_PORT}" ] && [ -n "${TOKEN}" ] && [ -n "${DEBUG}" ] && [ -z "${LOADEDCONFIG}" ]; then
+    echo "Save config to ${SAVE_CONFIG_FILE}"
+    echo "HOMESERVER_IP=${HOMESERVER_IP}" > ${SAVE_CONFIG_FILE}
+    echo "HOMESERVER_PORT=${HOMESERVER_PORT}" >> ${SAVE_CONFIG_FILE}
+    echo "TOKEN=${TOKEN}" >> ${SAVE_CONFIG_FILE}
+    echo "LOADEDCONFIG=1" >> ${SAVE_CONFIG_FILE}
+  fi
+
+fi
 
 
 java -jar gira-bridge-${project.version}-jar-with-dependencies.jar --homeserver-ip ${HOMESERVER_IP} --homeserver-port ${HOMESERVER_PORT} --token ${TOKEN} --debug ${DEBUG}
