@@ -54,6 +54,15 @@
 			<fileMode>0755</fileMode>
 		</fileSet>
     <fileSet>
+      <directory>target/scripts/supervisor</directory>
+      <outputDirectory>bin/supervisor</outputDirectory>
+      <includes>
+        <include>*.conf</include>
+      </includes>
+      <lineEnding>unix</lineEnding>
+      <fileMode>0755</fileMode>
+    </fileSet>
+    <fileSet>
       <directory>target/scripts</directory>
       <outputDirectory>support</outputDirectory>
       <includes>
