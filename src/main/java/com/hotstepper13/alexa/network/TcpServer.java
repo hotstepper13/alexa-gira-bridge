@@ -17,9 +17,12 @@
 package com.hotstepper13.alexa.network;
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.Inet4Address;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 
 import static spark.Spark.get;
@@ -47,16 +50,11 @@ public class TcpServer{
 	private Gson gson;
 	
 	public TcpServer(int port, List<Appliance> appliances) {
-		System.setProperty("java.net.preferIPv4Stack" , "true");
 		this.appliances = new ArrayList<Appliance>(appliances);
 		this.port = port;
 		this.trigger = new Trigger(this.appliances);
 		this.gson = new Gson();
-		try {
-			this.ip = InetAddress.getLocalHost();
-		} catch (UnknownHostException e) {
-			log.error("Cannot detemine local ip",e);
-		}
+		this.ip = this.getLocalAddress();
 		log.info("TCP Server found IP: " + this.ip.getHostAddress());		
 
 		// configure port for spark server
@@ -142,6 +140,28 @@ public class TcpServer{
 		return "{\"error\":{" + MessageFormat.format(response, params) + ":false}}";
 	}	
 
+	
+  public InetAddress getLocalAddress() {
+    try {
+	  	Enumeration<NetworkInterface> ifaces = NetworkInterface.getNetworkInterfaces();
+	    while( ifaces.hasMoreElements() ) {
+	      NetworkInterface iface = ifaces.nextElement();
+	      Enumeration<InetAddress> addresses = iface.getInetAddresses();
+	
+	      while( addresses.hasMoreElements() ) {
+	        InetAddress addr = addresses.nextElement();
+	        if( addr instanceof Inet4Address && !addr.isLoopbackAddress() ) {
+	          return addr;
+	        }
+	      }
+	    }
+    } catch (SocketException se) {
+    	log.error("Cannot determine local ipv4 address.", se);
+    }
+
+    return null;
+  }
+	
 }
 
 

@@ -33,7 +33,8 @@ public class GiraBridge {
 	private final static int port = 4711;
 	
 	public static void main(String[] args) throws InterruptedException {
-		
+		System.setProperty("java.net.preferIPv4Stack" , "true");
+
 		GiraBridge.config = new Config();
 		
 		for(int i=0; i<args.length;i++) {
