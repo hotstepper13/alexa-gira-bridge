@@ -6,8 +6,8 @@ deploy:
   provider: releases
   api_key: $GH_TOKEN
   file: 
-    - "target/gira-bride-generate-artifacts.tar.gz"
-    - "target/gira-bride-generate-artifacts.zip"
+    - "target/gira-bridge-generate-artifacts.tar.gz"
+    - "target/gira-bridge-generate-artifacts.zip"
   skip_cleanup: true
   on:
     tags: true
