@@ -69,11 +69,30 @@ public class Discovery {
 			Iterator<Appliance.Actions> actions = item.getActions().iterator();
 			while(actions.hasNext()) {
 				Appliance.Actions action = (Appliance.Actions)actions.next();
-				log.info("  * " + action.name());
+				if(action != null) {
+					if(checkSupportedActions(action)) {
+						log.info("  * " + action.name());
+					} else {
+						log.info("  * " + action.name() + " (currently not supported)");
+					}
+				} else {
+					log.info("  * unknown action (not supported)");
+				}
 			}
 		}
 	}
 
+	private boolean checkSupportedActions(Appliance.Actions action) {
+		if(action.equals(Appliance.Actions.setPercentage)) {
+			return true;
+		} else if (action.equals(Appliance.Actions.turnOff)) {
+			return true;
+		} else if (action.equals(Appliance.Actions.turnOn)) {
+			return true;
+		}
+		return false;
+	}
+	
 	public String getObjectJson() {
 		return objectJson;
 	}
