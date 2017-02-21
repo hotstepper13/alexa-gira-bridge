@@ -21,7 +21,7 @@ import java.util.List;
 public class Appliance {
 
 	public enum Actions {
-    turnOn,turnOff,incrementPercentage,decrementPercentage,setPercentage
+    turnOn,turnOff,incrementPercentage,decrementPercentage,setPercentage,incrementTargetTemperature,decrementTargetTemperature,setTargetTemperature
 	}
 	
 	private String friendlyName;
