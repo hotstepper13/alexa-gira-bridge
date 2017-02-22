@@ -34,9 +34,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
+import com.hotstepper13.alexa.configuration.Config;
 import com.hotstepper13.alexa.configuration.Constants;
 import com.hotstepper13.alexa.gira.Trigger;
 import com.hotstepper13.alexa.gira.beans.Appliance;
+import com.hotstepper13.alexa.gira.beans.DiscoveryItem;
 import com.hotstepper13.alexa.gira.beans.HueStateChange;
 
 public class TcpServer{
@@ -77,6 +79,21 @@ public class TcpServer{
 			response.type("application/json");
 			response.status(HttpStatus.SC_OK);
 			return this.buildLights();
+		} );
+		
+		// define handling for GET /api/<username>/lights/<id>
+		get("/api/:userid/lights/:id", "application/json", (request, response) -> {
+			log.info("Received request to /api/"+request.params(":userid")+"/lights/"+request.params(":id")+" from " + request.ip());
+			response.header("Access-Control-Allow-Origin", request.headers("Origin"));
+			response.type("application/json");
+			String hueDevice = this.buildStateForID(new Integer(request.params(":id")).intValue());
+			if(!hueDevice.equals("")) {
+				response.status(HttpStatus.SC_OK);
+				return hueDevice;
+			} else {
+				response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+				return "";
+			}
 		} );
 		
 		// define handling for PUT /api/{userId}/lights/{lightId}/state uses json
@@ -140,6 +157,38 @@ public class TcpServer{
 		return "{\"error\":{" + MessageFormat.format(response, params) + ":false}}";
 	}	
 
+	
+	private String buildStateForID(int id) {
+		Appliance app = this.appliances.get(id-1);
+		Gson gson = new Gson();
+		DiscoveryItem onOff;
+		DiscoveryItem percent;
+		Object[] params;
+		if(app.getActions().contains(Appliance.Actions.turnOff) || app.getActions().contains(Appliance.Actions.turnOn)) {
+			//Fetch OnOff
+			params = new Object[]{Config.getHomeserverIp(),Config.getHomeserverPort(), app.getApplianceId(), Config.getToken()};
+			onOff = gson.fromJson(Util.triggerHttpGetWithCustomSSL(MessageFormat.format(Constants.ONOFFVALUE_URL, params)), DiscoveryItem.class);
+			app.setOn(onOff.getPayload().getOnOff().isValue());
+		}
+		
+		
+		if(app.getActions().contains(Appliance.Actions.setPercentage) || app.getActions().contains(Appliance.Actions.incrementPercentage) || app.getActions().contains(Appliance.Actions.decrementPercentage)) {
+			//Fetch Percent
+			params = new Object[]{Config.getHomeserverIp(),Config.getHomeserverPort(), app.getApplianceId(), Config.getToken()};
+			percent = gson.fromJson(Util.triggerHttpGetWithCustomSSL(MessageFormat.format(Constants.PERCENTVALUE_URL, params)), DiscoveryItem.class); 
+			//calculate compatible value (0-255)
+			double returnValue = percent.getPayload().getPercent().getValue();
+			if(returnValue == 100.0) {
+				app.setBri(255);
+			} else if (returnValue > 0) {
+				app.setBri(new Double((returnValue/100)*255).intValue());
+			} else {
+				app.setBri(0);	
+			}
+		}
+
+		return app.getHueDevice();
+	}
 	
   public InetAddress getLocalAddress() {
     try {
