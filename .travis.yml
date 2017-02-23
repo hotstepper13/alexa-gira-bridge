@@ -9,14 +9,12 @@ services:
   - docker
 
 after_success:
-  - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
-  - if [ "$TRAVIS_BRANCH" == "master" ]; then
-    cd target
-    docker build -t hotstepper13/alexa-gira-bridge:latest .
-    docker push hotstepper13/alexa-gira-bridge:latest;
-    elif [ -n "$TRAVIS_TAG" ]; then
-    cd target
-    docker build -t hotstepper13/alexa-gira-bridge:$TRAVIS_TAG .
+  - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+  - cd target
+  - docker build -t hotstepper13/alexa-gira-bridge:latest .
+  - docker push hotstepper13/alexa-gira-bridge:latest
+  - if [ "-n "$TRAVIS_TAG" ]; then
+    docker tag hotstepper13/alexa-gira-bridge:latest hotstepper13/alexa-gira-bridge:$TRAVIS_TAG .
     docker push hotstepper13/alexa-gira-bridge:$TRAVIS_TAG;
     fi
 
