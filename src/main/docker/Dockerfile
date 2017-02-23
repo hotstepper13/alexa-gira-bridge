@@ -1,4 +1,4 @@
-FROM docker pull anapsix/alpine-java:8u121b13_server-jre
+FROM anapsix/alpine-java:8u121b13_server-jre
 
 MAINTAINER Frank Mueller <hotstepper13@sop-clan.com>
 
