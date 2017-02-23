@@ -14,7 +14,7 @@ after_success:
   - docker build -t hotstepper13/alexa-gira-bridge:latest .
   - docker push hotstepper13/alexa-gira-bridge:latest
   - if [ -n "$TRAVIS_TAG" ]; then
-    docker tag hotstepper13/alexa-gira-bridge:latest hotstepper13/alexa-gira-bridge:$TRAVIS_TAG .
+    docker tag hotstepper13/alexa-gira-bridge:latest hotstepper13/alexa-gira-bridge:$TRAVIS_TAG
     docker push hotstepper13/alexa-gira-bridge:$TRAVIS_TAG;
     fi
 
