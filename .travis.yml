@@ -13,7 +13,7 @@ after_success:
   - cd target
   - docker build -t hotstepper13/alexa-gira-bridge:latest .
   - docker push hotstepper13/alexa-gira-bridge:latest
-  - if [ "-n "$TRAVIS_TAG" ]; then
+  - if [ -n "$TRAVIS_TAG" ]; then
     docker tag hotstepper13/alexa-gira-bridge:latest hotstepper13/alexa-gira-bridge:$TRAVIS_TAG .
     docker push hotstepper13/alexa-gira-bridge:$TRAVIS_TAG;
     fi
@@ -22,8 +22,8 @@ deploy:
   provider: releases
   api_key: $GH_TOKEN
   file: 
-    - "target/gira-bridge-generate-artifacts.tar.gz"
-    - "target/gira-bridge-generate-artifacts.zip"
+    - "/home/travis/build/hotstepper13/alexa-gira-bridge/target/gira-bridge-generate-artifacts.tar.gz"
+    - "/home/travis/build/hotstepper13/alexa-gira-bridge/target/gira-bridge-generate-artifacts.zip"
   skip_cleanup: true
   on:
     tags: true
