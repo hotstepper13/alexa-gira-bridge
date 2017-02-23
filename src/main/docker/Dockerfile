@@ -4,10 +4,10 @@ MAINTAINER Frank Mueller <hotstepper13@sop-clan.com>
 
 ADD gira-bridge-${project.version}-jar-with-dependencies.jar /gira-bridge-${project.version}-jar-with-dependencies.jar
 
-ENV HOMESERVER_IP
-ENV HOMESERVER_PORT
-ENV TOKEN
-ENV DEBUG=false
+#ENV HOMESERVER_IP
+#ENV HOMESERVER_PORT
+#ENV TOKEN
+#ENV DEBUG=false
 
 EXPOSE 4711
 EXPOSE 1900
