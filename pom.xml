@@ -18,7 +18,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.hotstepper13.alexa</groupId>
   <artifactId>gira-bridge</artifactId>
-  <version>2.0.9-SNAPSHOT</version>
+  <version>2.0.9</version>
   <description>Proof of Concept for a bridge from amazon echo to gira homeserver</description>
 
   <licenses>
