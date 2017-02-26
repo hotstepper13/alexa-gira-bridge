@@ -84,7 +84,7 @@ public class Constants {
 		"<URLBase>http://{0}:{1}/</URLBase>\r\n" +
 		"<device>\r\n" +
 		"<deviceType>urn:schemas-upnp-org:device:Basic:1</deviceType>\r\n" +
-		"<friendlyName>Philips hue (10.18.96.73)</friendlyName>\r\n" +
+		"<friendlyName>Philips hue ({0})</friendlyName>\r\n" +
 		"<manufacturer>Royal Philips Electronics</manufacturer>\r\n" +
 		"<manufacturerURL>http://www.philips.com</manufacturerURL>\r\n" +
 		"<modelDescription>Philips hue Personal Wireless Lighting</modelDescription>\r\n" +
