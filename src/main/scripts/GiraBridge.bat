@@ -22,9 +22,11 @@ SET HOMESERVER_IP=
 SET HOMESERVER_PORT=
 SET TOKEN=
 SET DEBUG=false
+SET ENABLE_SSL=true
+SET HTTP_IP=""
 
 @rem DO NOT EDIT BELOW THIS LINE UNLESS YOU KNOW WHAT YOU ARE DOING
 
 
-java -jar gira-bridge-${project.version}-jar-with-dependencies.jar --homeserver-ip %HOMESERVER_IP% --homeserver-port %HOMESERVER_PORT% --token %TOKEN% --debug %DEBUG%
+java -jar gira-bridge-${project.version}-jar-with-dependencies.jar --homeserver-ip %HOMESERVER_IP% --homeserver-port %HOMESERVER_PORT% --token %TOKEN% --debug %DEBUG% --enable-ssl %ENABLE_SSL% --http-ip %HTTP_IP%
 

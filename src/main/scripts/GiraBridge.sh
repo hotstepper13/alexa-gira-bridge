@@ -26,6 +26,8 @@
 HOMESERVER_IP=
 HOMESERVER_PORT=
 TOKEN=
+ENABLE_SSL=true
+HTTP_IP=""
 
 # This setting will always be read from this configuration
 DEBUG=false
@@ -48,16 +50,18 @@ if [ ! -d ${SAVE_CONFIG_DIR} ] ; then
 fi
 
 if [ ! -f ${SAVE_CONFIG_FILE} ] ; then
-  if [ -n "${HOMESERVER_IP}" ] && [ -n "${HOMESERVER_PORT}" ] && [ -n "${TOKEN}" ] && [ -n "${DEBUG}" ] && [ -z "${LOADEDCONFIG}" ]; then
+  if [ -n "${HOMESERVER_IP}" ] && [ -n "${HOMESERVER_PORT}" ] && [ -n "${TOKEN}" ] && [ -n "${DEBUG}" ] && [ -n "${ENABLE_SSL}" ] && [ -z "${LOADEDCONFIG}" ]; then
     echo "Save config to ${SAVE_CONFIG_FILE}"
     echo "HOMESERVER_IP=${HOMESERVER_IP}" > ${SAVE_CONFIG_FILE}
     echo "HOMESERVER_PORT=${HOMESERVER_PORT}" >> ${SAVE_CONFIG_FILE}
     echo "TOKEN=${TOKEN}" >> ${SAVE_CONFIG_FILE}
+    echo "ENABLE_SSL=true" >> ${SAVE_CONFIG_FILE}
+    echo "HTTP_IP=\"\"" >> ${SAVE_CONFIG_FILE}
     echo "LOADEDCONFIG=1" >> ${SAVE_CONFIG_FILE}
   fi
 
 fi
 
 
-java -jar gira-bridge-${project.version}-jar-with-dependencies.jar --homeserver-ip ${HOMESERVER_IP} --homeserver-port ${HOMESERVER_PORT} --token ${TOKEN} --debug ${DEBUG}
+java -jar gira-bridge-${project.version}-jar-with-dependencies.jar --homeserver-ip ${HOMESERVER_IP} --homeserver-port ${HOMESERVER_PORT} --token ${TOKEN} --debug ${DEBUG} --enable-ssl ${ENABLE_SSL} --http-ip ${HTTP_IP}
 

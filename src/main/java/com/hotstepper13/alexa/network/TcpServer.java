@@ -58,6 +58,9 @@ public class TcpServer{
 		this.gson = new Gson();
 		this.ip = this.getLocalAddress();
 		log.info("TCP Server found IP: " + this.ip.getHostAddress());		
+		if(!Config.getHttpIp().equals("")) {
+			log.info("Overwriting IP for Discovery calls with: " + Config.getHttpIp());
+		}
 
 		// configure port for spark server
 		port(port);
