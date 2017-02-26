@@ -65,7 +65,12 @@ public class TcpServer{
 		// define handling for GET /description.xml
 		get("/description.xml", "application/xml; charset=utf-8", (request, response) -> {
 			log.info("Received request to /description.xml from " + request.ip());
-			Object[] params = new Object[]{this.ip,""+this.port};
+			Object[] params;
+			if(Config.getHttpIp().equals("")) {
+				params = new Object[]{this.ip,""+this.port};
+			} else {
+				params = new Object[]{Config.getHttpIp(),""+this.port};
+			}
 			String xml = MessageFormat.format(Constants.HUE_DESCRIPTION, params);
 			response.type("application/xml; charset=utf-8"); 
       response.status(HttpStatus.SC_OK);
@@ -167,7 +172,11 @@ public class TcpServer{
 		if(app.getActions().contains(Appliance.Actions.turnOff) || app.getActions().contains(Appliance.Actions.turnOn)) {
 			//Fetch OnOff
 			params = new Object[]{Config.getHomeserverIp(),Config.getHomeserverPort(), app.getApplianceId(), Config.getToken()};
-			onOff = gson.fromJson(Util.triggerHttpGetWithCustomSSL(MessageFormat.format(Constants.ONOFFVALUE_URL, params)), DiscoveryItem.class);
+			if(Config.isEnableSsl()) {
+				onOff = gson.fromJson(Util.triggerHttpGetWithCustomSSL(MessageFormat.format(Constants.ONOFFVALUE_URL, params)), DiscoveryItem.class);
+			} else {
+				onOff = gson.fromJson(Util.triggerHttpGet(MessageFormat.format(Constants.ONOFFVALUE_URL, params)), DiscoveryItem.class);
+			}
 			app.setOn(onOff.getPayload().getOnOff().isValue());
 		}
 		
@@ -175,7 +184,11 @@ public class TcpServer{
 		if(app.getActions().contains(Appliance.Actions.setPercentage) || app.getActions().contains(Appliance.Actions.incrementPercentage) || app.getActions().contains(Appliance.Actions.decrementPercentage)) {
 			//Fetch Percent
 			params = new Object[]{Config.getHomeserverIp(),Config.getHomeserverPort(), app.getApplianceId(), Config.getToken()};
-			percent = gson.fromJson(Util.triggerHttpGetWithCustomSSL(MessageFormat.format(Constants.PERCENTVALUE_URL, params)), DiscoveryItem.class); 
+			if(Config.isEnableSsl()) {
+				percent = gson.fromJson(Util.triggerHttpGetWithCustomSSL(MessageFormat.format(Constants.PERCENTVALUE_URL, params)), DiscoveryItem.class);
+			} else {
+				percent = gson.fromJson(Util.triggerHttpGet(MessageFormat.format(Constants.PERCENTVALUE_URL, params)), DiscoveryItem.class);
+			}
 			//calculate compatible value (0-255)
 			double returnValue = percent.getPayload().getPercent().getValue();
 			if(returnValue == 100.0) {

@@ -24,6 +24,8 @@ public class Config {
 	private static String homeserverIp;
 	private static String homeserverPort;
 	private static String token;
+	private static boolean enableSsl = true;
+	private static String httpIp = "";
 	
 	private final static Logger log = LoggerFactory.getLogger(Config.class);
 	
@@ -71,6 +73,22 @@ public class Config {
 
 	public static void setToken(String token) {
 		Config.token = token;
+	}
+
+	public static boolean isEnableSsl() {
+		return enableSsl;
+	}
+
+	public static void setEnableSsl(boolean enableSsl) {
+		Config.enableSsl = enableSsl;
+	}
+
+	public static String getHttpIp() {
+		return httpIp;
+	}
+
+	public static void setHttpIp(String httpIp) {
+		Config.httpIp = httpIp;
 	}
 
 	

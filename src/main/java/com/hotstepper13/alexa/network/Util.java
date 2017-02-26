@@ -27,12 +27,15 @@ import java.security.NoSuchAlgorithmException;
 import java.util.StringTokenizer;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
@@ -114,4 +117,23 @@ public class Util {
 		return result;
 	}
 
+	public static String triggerHttpGet(String requestUrl) {
+		String result = null;
+		HttpClient client = HttpClientBuilder.create().build();
+		HttpGet request = new HttpGet(requestUrl);
+		try {
+			HttpResponse response = client.execute(request);
+    	if( response.getStatusLine().getStatusCode() == HttpStatus.SC_OK ) {
+        HttpEntity entity = response.getEntity();
+        result = EntityUtils.toString(entity);
+        log.debug("Received response: " + result);
+    	} else {
+    		log.error("Request not successful. StatusCode was " + response.getStatusLine().getStatusCode());
+    	}
+		} catch (IOException e) {
+			log.error("Error executing the request.", e);
+		}
+		return result;
+	}
+	
 }

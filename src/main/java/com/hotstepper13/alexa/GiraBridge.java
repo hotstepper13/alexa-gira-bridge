@@ -47,6 +47,12 @@ public class GiraBridge {
 			} else if(args[i].equals("--token")) {
 				i++;
 				Config.setToken(args[i]);
+			} else if(args[i].equals("--http-ip")) {
+				i++;
+				Config.setHttpIp(args[i]);
+			} else if(args[i].equals("--enable-ssl")) {
+				i++;
+				Config.setEnableSsl(new Boolean(args[i]).booleanValue());
 			} else if(args[i].equals("--debug")) {
 				i++;
 				if(new Boolean(args[i]).booleanValue()) {
@@ -84,6 +90,10 @@ public class GiraBridge {
 		System.out.println("");
 		System.out.println("To start in debug mode just add \"--debug true\" (token/passwords will be visible!):");
 		System.out.println("java -jar GiraBridge-jar-with-dependencies.jar --homeserver-ip 192.168.0.15 --homeserver-port 30000 --token superCOOLpassword --debug true");
+		System.out.println("");
+		System.out.println("Additional option for special circumstances:");
+		System.out.println("--enable-ssl: true (default)/false; can be used to disable https based communication to the homeserver");
+		System.out.println("--http-ip: <String>; IP Address to be used in description.xml to point Alexa to the right system. Useful in docker environment or if you want to operate behind any kind of proxy");
 		System.out.println("");
 	}
 	

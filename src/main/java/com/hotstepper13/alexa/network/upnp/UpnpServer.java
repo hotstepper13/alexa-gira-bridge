@@ -25,6 +25,7 @@ import java.text.MessageFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hotstepper13.alexa.configuration.Config;
 import com.hotstepper13.alexa.configuration.Constants;
 import com.hotstepper13.alexa.network.UDPSender;
 import com.hotstepper13.alexa.network.Util;
@@ -83,7 +84,12 @@ public class UpnpServer extends Thread {
   }
   
   private void sendDiscoveryResponse(InetAddress requestAddress, int requestPort) {
-		Object[] response_params = new Object[]{this.address,""+this.port,Util.getHueBridgeIdFromMac(this.address),Util.getSNUUIDFromMac(this.address)};
+		Object[] response_params;
+		if(Config.getHttpIp().equals("")) {
+			response_params = new Object[]{this.address,""+this.port,Util.getHueBridgeIdFromMac(this.address),Util.getSNUUIDFromMac(this.address)};
+		} else {
+			response_params = new Object[]{Config.getHttpIp(),""+this.port,Util.getHueBridgeIdFromMac(this.address),Util.getSNUUIDFromMac(this.address)};
+		}
 		UDPSender us = new UDPSender(requestAddress.getHostAddress(), requestPort);
 		us.sendMessage(MessageFormat.format(Constants.responseTemplate1, response_params));
 		us.sendMessage(MessageFormat.format(Constants.responseTemplate2, response_params));

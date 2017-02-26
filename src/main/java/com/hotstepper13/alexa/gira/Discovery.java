@@ -36,6 +36,7 @@ public class Discovery {
 	private String objectJson="";
 	private String discovery_url;
 	private DiscoveryItem discoveryItem;
+	private final static int EXIT_ERROR = 0;
 	
 	public Discovery() {
 		Object[] params = new Object[]{Config.getHomeserverIp(),Config.getHomeserverPort(), Config.getToken()};
@@ -54,13 +55,23 @@ public class Discovery {
 	private void fetchDiscoverySSL() {
 		log.debug("Fetching Objects from Homeserver using url: " + this.discovery_url);
 
-		this.objectJson = Util.triggerHttpGetWithCustomSSL(this.discovery_url);
+		if(Config.isEnableSsl()) {
+			this.objectJson = Util.triggerHttpGetWithCustomSSL(this.discovery_url);
+		} else {
+			this.objectJson = Util.triggerHttpGet(this.discovery_url);
+		}
 
 	}
 
 	private void parseDiscoveryResponse() {
 		Gson gson = new Gson();
 		this.discoveryItem = gson.fromJson(this.objectJson, DiscoveryItem.class);
+		if(this.discoveryItem == null || this.discoveryItem.getPayload() == null || this.discoveryItem.getPayload().getDiscoveredAppliances() == null ) {
+			log.error("Cannot fetch any appliance from homeserver. Check your Configuration and SSL certificate.");
+			log.error("If you have not enabled ssl in homeserver, you may switch to non ssl mode by passing \"--enable-ssl false\".");
+			log.error("The software will now terminate");
+			System.exit(EXIT_ERROR);
+		}
 		log.info("Discoverered " + this.discoveryItem.getPayload().getDiscoveredAppliances().size() + " items from Homeserver");
 		Iterator<Appliance> appliances = this.discoveryItem.getPayload().getDiscoveredAppliances().iterator();
 		while(appliances.hasNext()) {

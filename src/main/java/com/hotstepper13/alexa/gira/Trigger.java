@@ -116,7 +116,12 @@ public class Trigger {
 			params = new Object[]{Config.getHomeserverIp(),Config.getHomeserverPort(),applianceId,action,Config.getToken(),(""+value).replace(",", ".")};
 			request = MessageFormat.format(Constants.GIRA_REQUEST_VALUE_TEMPLATE, params);
 		}
-		String response = Util.triggerHttpGetWithCustomSSL(request);
+		String response;
+		if(Config.isEnableSsl()) {
+			response = Util.triggerHttpGetWithCustomSSL(request);
+		} else {
+			response = Util.triggerHttpGet(request);
+		}
 		if(response != null) {
 			result = true;
 		}
