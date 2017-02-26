@@ -49,7 +49,9 @@ public class GiraBridge {
 				Config.setToken(args[i]);
 			} else if(args[i].equals("--http-ip")) {
 				i++;
-				Config.setHttpIp(args[i]);
+				if(i<args.length) {
+					Config.setHttpIp(args[i]);
+				}
 			} else if(args[i].equals("--enable-ssl")) {
 				i++;
 				Config.setEnableSsl(new Boolean(args[i]).booleanValue());
