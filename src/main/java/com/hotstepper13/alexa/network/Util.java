@@ -24,7 +24,11 @@ import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.StringTokenizer;
+
+import javax.net.ssl.HostnameVerifier;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -92,11 +96,19 @@ public class Util {
     String result = null;
 		try {
   		SSLContextBuilder builder = new SSLContextBuilder();
-    	builder.loadTrustMaterial(null, new TrustSelfSignedStrategy());
-	
-	    SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build());
+    	builder.loadTrustMaterial(null, new TrustSelfSignedStrategy() {
+    		public boolean isTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
+    			return true;
+    		}
+    	});
+    	@SuppressWarnings("deprecation")
+			HostnameVerifier hostnameVerifier = SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER;
+    	
+	    SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(builder.build(), hostnameVerifier);
+	    
 	    CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
-	
+	    
+	    
 	    HttpGet httpGet = new HttpGet(requestUrl);
 	    CloseableHttpResponse response = httpclient.execute(httpGet);
 	    try {
