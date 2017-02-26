@@ -34,6 +34,14 @@ If you want to run the software by yourself:
 
 `java -jar <jarfile> --homeserver-ip <homeserverIp> --homeserver-port <homeserverPort> --token <token> (Optional: --debug true)`
 
+Optional Parameters:
+
+Enable ssl for bridge<->Homeserver communication (Default true)
+`--enable-ssl false`
+
+Overwrite ip address for discovery reponse (useful while running behind a proxy or in docker, default empty)
+`--http-ip <reachable-ip-address>`
+
 ### Docker
 As requested within kns-user-forum a docker version of this software is now also available.
 Remind that the software will try to find the IP where it is reachable. Under some circumstances it might happen that the application reports a wrong ip.
