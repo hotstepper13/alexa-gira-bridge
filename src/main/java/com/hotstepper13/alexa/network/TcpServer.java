@@ -22,6 +22,7 @@ import java.net.SocketException;
 import java.net.Inet4Address;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -47,14 +48,14 @@ public class TcpServer{
 	
 	private int port;
 	private InetAddress ip;
-	private ArrayList<Appliance> appliances;
+	private static ArrayList<Appliance> appliances;
 	private Trigger trigger;
 	private Gson gson;
 	
 	public TcpServer(int port, List<Appliance> appliances) {
-		this.appliances = new ArrayList<Appliance>(appliances);
+		TcpServer.appliances = new ArrayList<Appliance>(appliances);
 		this.port = port;
-		this.trigger = new Trigger(this.appliances);
+		this.trigger = new Trigger(TcpServer.appliances);
 		this.gson = new Gson();
 		this.ip = this.getLocalAddress();
 		log.info("TCP Server found IP: " + this.ip.getHostAddress());		
@@ -128,7 +129,7 @@ public class TcpServer{
 			response.header("Access-Control-Allow-Origin", request.headers("Origin"));
 			response.type("application/json");
 			response.status(HttpStatus.SC_OK);
-			return this.appliances.get(new Integer(request.params(":id"))-1).getHueDevice();
+			return TcpServer.appliances.get(new Integer(request.params(":id"))-1).getHueDevice();
 		});
 		
 	}
@@ -167,20 +168,34 @@ public class TcpServer{
 
 	
 	private String buildStateForID(int id) {
-		Appliance app = this.appliances.get(id-1);
+		
+		//Bugfix if devices are removed
+		if(id > TcpServer.appliances.size()) {
+			log.info("Called ID was larger amount of Appliances in List. Assume Discovery with removed Appliance was triggered");
+			log.info("Return dummy device with Hue State");
+			Appliance a = new Appliance("Discovery", "0", Arrays.asList(Appliance.Actions.turnOn));
+			a.setOn(true);
+			return a.getHueDevice();
+		}
+		
+		Appliance app = TcpServer.appliances.get(id-1);
 		Gson gson = new Gson();
 		DiscoveryItem onOff;
 		DiscoveryItem percent;
 		Object[] params;
 		if(app.getActions().contains(Appliance.Actions.turnOff) || app.getActions().contains(Appliance.Actions.turnOn)) {
-			//Fetch OnOff
-			params = new Object[]{Config.getHomeserverIp(),Config.getHomeserverPort(), app.getApplianceId(), Config.getToken()};
-			if(Config.isEnableSsl()) {
-				onOff = gson.fromJson(Util.triggerHttpGetWithCustomSSL(MessageFormat.format(Constants.ONOFFVALUE_URL, params)), DiscoveryItem.class);
+			if(app.getApplianceId().equals("0")) {
+				app.setOn(true);
 			} else {
-				onOff = gson.fromJson(Util.triggerHttpGet(MessageFormat.format(Constants.ONOFFVALUE_URL, params)), DiscoveryItem.class);
+				//Fetch OnOff
+				params = new Object[]{Config.getHomeserverIp(),Config.getHomeserverPort(), app.getApplianceId(), Config.getToken()};
+				if(Config.isEnableSsl()) {
+					onOff = gson.fromJson(Util.triggerHttpGetWithCustomSSL(MessageFormat.format(Constants.ONOFFVALUE_URL, params)), DiscoveryItem.class);
+				} else {
+					onOff = gson.fromJson(Util.triggerHttpGet(MessageFormat.format(Constants.ONOFFVALUE_URL, params)), DiscoveryItem.class);
+				}
+				app.setOn(onOff.getPayload().getOnOff().isValue());
 			}
-			app.setOn(onOff.getPayload().getOnOff().isValue());
 		}
 		
 		
@@ -227,6 +242,12 @@ public class TcpServer{
     return null;
   }
 	
+  public static void updateAppliances(List<Appliance> appliances) {
+  	log.info("Update Appliances in TcpServer");
+  	TcpServer.appliances = new ArrayList<Appliance>(appliances);
+  }
+  
+  
 }
 
 

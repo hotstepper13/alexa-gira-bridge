@@ -15,7 +15,7 @@ Execute without parameters to get usage information
 - Networkports: UDP/1900, TCP/4711
 
 ## Limitation
-- Currently it is only possible to switch on/off a light.
+- Currently it is only possible to switch on/off and dim a light.
 - If you have a push button activated device (like a scene) in your Gira Homeserver, be sure to attach it with Objecttype "on" or "off" instead of "onOff". The bridge will recognize it and send the correct command to trigger it.
 - If you want to operate this software on a windows pc you must disable locally running upnp services. On windows 10 you have to change a registry value and reboot your system!
 
@@ -25,7 +25,7 @@ Execute without parameters to get usage information
 - extract to a local directory
 - edit the startscript for your system (*.bat for windows and *.sh for linux) and add your details
 - execute the script
-- As soon as everything is started, tell your Echo "Alexa, find my devices"
+- As soon as everything is started, tell your Echo "Alexa, find my devices" (Deutsch: "Alexa, finde Geräte")
 
 Hint: The Software will start in foreground. If you close the terminal or hit CTRL+C the application will be stopped.
 I assume most people running this software are able to send a process to background, therefore this topic might be handled later.
@@ -49,15 +49,22 @@ It might be needed to use host networking.
 
 Further information can be found at: https://hub.docker.com/r/hotstepper13/alexa-gira-bridge/
 
+## Updating Devicelist
+With Release 2.0.11 it is possible to update the devicelist in a running system.
+1. Tell Echo to start discovery by issuing the command "Alexa, turn Discovery on" (Deutsch: "Alexa, schalte Discovery ein")
+2. After you hear the ok from Echo update the Echo Devicelist by telling "Alexa, find my devices" (Deutsch: "Alexa, finde Geräte")
+
+**Hint: Sometimes it might be needed to discard all found devices in the Alexa App in order to Match the IDs.**
+
 ## Donations
 If you like this software I would appreciate a donation via PayPal: https://www.paypal.me/hotstepper13
 
 Please keep in mind that this would not be possible without the Work of Picpol (who invented the Gira Logic Module that is used as backend). Details for donations to him can be found at his repository information: https://github.com/Picpol/HS-AmazonEcho
 
 ## Planned / Roadmap
-- Dimming
+- ~~Dimming~~ (fully supported since 2.0.4)
 - Temperature (Maybe have to look around for a useful api) 
-- update devices without restarting (with a voice command?!)
+- ~~update devices without restarting (with a voice command?!)~~ (fully supported since 2.0.11)
 
 ## Workflow
 - As soon as the application is started, it will connect to the gira homeserver via TCP, fetch the devicelist and build an internal device structure.

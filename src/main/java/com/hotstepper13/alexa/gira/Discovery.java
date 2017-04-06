@@ -17,6 +17,7 @@
 package com.hotstepper13.alexa.gira;
 
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.Iterator;
 
 import org.slf4j.Logger;
@@ -72,11 +73,15 @@ public class Discovery {
 			log.error("The software will now terminate");
 			System.exit(EXIT_ERROR);
 		}
+		
+		addDiscoveryAppliance();
+		
 		log.info("Discoverered " + this.discoveryItem.getPayload().getDiscoveredAppliances().size() + " items from Homeserver");
 		Iterator<Appliance> appliances = this.discoveryItem.getPayload().getDiscoveredAppliances().iterator();
+		int i = 0;
 		while(appliances.hasNext()) {
 			Appliance item = (Appliance)appliances.next();
-			log.info(item.getFriendlyName() + " with id " + item.getApplianceId() + " has the following actions: ");
+			log.info(item.getFriendlyName() + " with id " + item.getApplianceId() + " (ListItem: " + i + ") has the following actions: ");
 			Iterator<Appliance.Actions> actions = item.getActions().iterator();
 			while(actions.hasNext()) {
 				Appliance.Actions action = (Appliance.Actions)actions.next();
@@ -90,15 +95,25 @@ public class Discovery {
 					log.info("  * unknown action (not supported)");
 				}
 			}
+			i++;
 		}
 	}
 
+	private void addDiscoveryAppliance() {
+		Appliance a = new Appliance("Discovery", "0", Arrays.asList(Appliance.Actions.turnOn));
+		this.discoveryItem.getPayload().getDiscoveredAppliances().add(a);
+	}
+	
 	private boolean checkSupportedActions(Appliance.Actions action) {
 		if(action.equals(Appliance.Actions.setPercentage)) {
 			return true;
 		} else if (action.equals(Appliance.Actions.turnOff)) {
 			return true;
 		} else if (action.equals(Appliance.Actions.turnOn)) {
+			return true;
+		} else if (action.equals(Appliance.Actions.incrementPercentage)) {
+			return true;
+		} else if (action.equals(Appliance.Actions.decrementPercentage)) {
 			return true;
 		}
 		return false;

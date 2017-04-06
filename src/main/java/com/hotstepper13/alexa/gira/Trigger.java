@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,7 @@ import com.hotstepper13.alexa.configuration.Config;
 import com.hotstepper13.alexa.configuration.Constants;
 import com.hotstepper13.alexa.gira.beans.Appliance;
 import com.hotstepper13.alexa.gira.beans.HueStateChange;
+import com.hotstepper13.alexa.network.TcpServer;
 import com.hotstepper13.alexa.network.Util;
 
 public class Trigger {
@@ -48,13 +50,19 @@ public class Trigger {
 		double value=666.0;
 		double maxValue=255.0;
 		int percMultiplier=100;
-		
+
+		// id = 0 == update Discovery
 		// getBri != 0  == setPercentate
 		// bri_inc > 0 == incrementPercentate
 		// bri_inc < 0 == decrementPercentate
 		// getBri = 0 && state = on  == turn on
 		// getBri = 0 && state = off  == turn off
-		if(!state.isOn() && state.getBri() == 0 && state.getBri_inc() == 0) {
+		if(id == Trigger.appliances.size()) {
+			Discovery d = new Discovery();
+			TcpServer.updateAppliances(d.getDiscoveryItem().getPayload().getDiscoveredAppliances());
+			Trigger.updateAppliances(d.getDiscoveryItem().getPayload().getDiscoveredAppliances());
+			return true;
+		} else if(!state.isOn() && state.getBri() == 0 && state.getBri_inc() == 0) {
 			//turn off
 			if(appliance.getActions().contains(Appliance.Actions.turnOff)) {
 				log.info("Sending TurnOffRequest to " + appliance.getFriendlyName());
@@ -128,6 +136,11 @@ public class Trigger {
 		return result;
 	}
 
+  public static void updateAppliances(List<Appliance> appliances) {
+  	log.info("Update Appliances in Trigger");
+  	Trigger.appliances = new ArrayList<Appliance>(appliances);
+  }
+	
 	public static double round(double value, int places) {
     if (places < 0) throw new IllegalArgumentException();
 
