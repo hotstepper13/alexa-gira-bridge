@@ -9,3 +9,6 @@ buildNumber.properties
 .mvn/timing.properties
 /.classpath
 /.project
+/discovery-example.json
+/hue-datastore.json
+/.settings/
