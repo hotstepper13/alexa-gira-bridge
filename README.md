@@ -81,3 +81,7 @@ This project was influenced by several other project. From some of them i "borro
 - https://github.com/timfpark/hueBridge
 - https://github.com/armzilla/amazon-echo-ha-bridge 
 
+## Contributions
+- skulawik: Implemented a Bugfix for non ssl discovery
+
+
