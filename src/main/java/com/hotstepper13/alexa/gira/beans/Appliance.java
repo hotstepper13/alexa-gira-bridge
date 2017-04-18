@@ -21,25 +21,23 @@ import java.util.List;
 public class Appliance {
 
 	public enum Actions {
-    turnOn,turnOff,incrementPercentage,decrementPercentage,setPercentage,incrementTargetTemperature,decrementTargetTemperature,setTargetTemperature
+		turnOn, turnOff, incrementPercentage, decrementPercentage, setPercentage, incrementTargetTemperature, decrementTargetTemperature, setTargetTemperature
 	}
-	
+
 	private String friendlyName;
 	private String applianceId;
 	private List<Actions> actions;
 	private int hueId;
 	private boolean isOn = false;
 	private int bri = 0;
-	
 
-	public Appliance (String friendlyName, String applianceId, List<Actions> actions) {
+	public Appliance(String friendlyName, String applianceId, List<Actions> actions) {
 		this.friendlyName = friendlyName;
 		this.applianceId = applianceId;
 		this.actions = actions;
 	}
 
-	
-  public int getHueId() {
+	public int getHueId() {
 		return hueId;
 	}
 
@@ -77,31 +75,19 @@ public class Appliance {
 	}
 
 	@Override
-  public String toString() {
-      return friendlyName + " - " + applianceId + " - " + actions;
-  }	
+	public String toString() {
+		return friendlyName + " - " + applianceId + " - " + actions;
+	}
 
 	public String getHueDevice() {
-		String result =
-				"{\r\n" +
-				"\t\"state\": {\r\n" +
-				"\t\t\"on\": " + (this.isOn?"true":"false") + ",\r\n" +
-				"\t\t\"bri\": " + this.bri + ",\r\n" +
-				"\t\t\"hue\": 0,\r\n" +
-				"\t\t\"sat\": 0,\r\n" +
-				"\t\t\"effect\": \"none\",\r\n" +
-				"\t\t\"ct\": 0,\r\n" +
-				"\t\t\"alert\": \"none\",\r\n" +
-				"\t\t\"reachable\": true\r\n" +
-				"\t},\r\n" +
-				"\t\"type\": \"Dimmable light\",\r\n" +
-				"\t\"name\": \"" + this.getFriendlyName() + "\",\r\n" +
-				"\t\"modelid\": \"LWB004\",\r\n" +
-				"\t\"manufacturername\":\"Philips\",\r\n" +
-				"\t\"uniqueid\": \"00:17:88:5E:D3:" + this.applianceId.replaceAll("_", "-") + "\",\r\n" +
-				"\t\"swversion\": \"66012040\"\r\n" + 
-				"}";
+		String result = "{\r\n" + "\t\"state\": {\r\n" + "\t\t\"on\": " + (this.isOn ? "true" : "false") + ",\r\n"
+				+ "\t\t\"bri\": " + this.bri + ",\r\n" + "\t\t\"hue\": 0,\r\n" + "\t\t\"sat\": 0,\r\n"
+				+ "\t\t\"effect\": \"none\",\r\n" + "\t\t\"ct\": 0,\r\n" + "\t\t\"alert\": \"none\",\r\n"
+				+ "\t\t\"reachable\": true\r\n" + "\t},\r\n" + "\t\"type\": \"Dimmable light\",\r\n" + "\t\"name\": \""
+				+ this.getFriendlyName() + "\",\r\n" + "\t\"modelid\": \"LWB004\",\r\n"
+				+ "\t\"manufacturername\":\"Philips\",\r\n" + "\t\"uniqueid\": \"00:17:88:5E:D3:"
+				+ this.applianceId.replaceAll("_", "-") + "\",\r\n" + "\t\"swversion\": \"66012040\"\r\n" + "}";
 		return result;
 	}
-	
+
 }

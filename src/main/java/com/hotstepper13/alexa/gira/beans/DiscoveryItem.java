@@ -24,8 +24,9 @@ public class DiscoveryItem {
 	public Header getHeader() {
 		return header;
 	}
+
 	public Payload getPayload() {
 		return payload;
 	}
-	
+
 }

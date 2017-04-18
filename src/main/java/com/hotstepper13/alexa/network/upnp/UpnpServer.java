@@ -37,66 +37,68 @@ public class UpnpServer extends Thread {
 	private MulticastSocket msocket = null;
 	private String address;
 	private int port;
-	
+
 	public UpnpServer(String address, int port) {
 		this.address = address;
 		this.port = port;
 	}
 
-  public void run(){
-    try {
-    	InetAddress multicastAddress = InetAddress.getByName(Constants.MULTICAST_ADDRESS); 
-      this.msocket = new MulticastSocket(Constants.SSDP_PORT); 
-      this.msocket.setReuseAddress(true);
-      this.msocket.joinGroup(multicastAddress);
-      byte[] buffer = new byte[2048];
-      DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-      while (!this.terminated) {
-      	this.msocket.receive(packet);
-      	String message = new String(packet.getData(), "UTF-8" );
-      	if(message.contains("M-SEARCH")) {
-        	log.debug("Received Search Request from " + packet.getSocketAddress().toString() + ":\n" + message);
-        	if(this.checkSearch(message) && packet.getPort() == 50000) {
-      			log.info("DiscoveryResponse needed");
-      			this.sendDiscoveryResponse(packet.getAddress(), packet.getPort());
-        	}
-      	}
-        // Reset the length of the packet before reusing it.
-        packet.setLength(buffer.length);
-      }
-    } catch (IOException e) {
-			log.error("Error while listening for UDP packages",e);
+	public void run() {
+		try {
+			InetAddress multicastAddress = InetAddress.getByName(Constants.MULTICAST_ADDRESS);
+			this.msocket = new MulticastSocket(Constants.SSDP_PORT);
+			this.msocket.setReuseAddress(true);
+			this.msocket.joinGroup(multicastAddress);
+			byte[] buffer = new byte[2048];
+			DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+			while (!this.terminated) {
+				this.msocket.receive(packet);
+				String message = new String(packet.getData(), "UTF-8");
+				if (message.contains("M-SEARCH")) {
+					log.debug("Received Search Request from " + packet.getSocketAddress().toString() + ":\n" + message);
+					if (this.checkSearch(message) && packet.getPort() == 50000) {
+						log.info("DiscoveryResponse needed");
+						this.sendDiscoveryResponse(packet.getAddress(), packet.getPort());
+					}
+				}
+				// Reset the length of the packet before reusing it.
+				packet.setLength(buffer.length);
+			}
+		} catch (IOException e) {
+			log.error("Error while listening for UDP packages", e);
 		} finally {
 			this.msocket.close();
 		}
-  }
+	}
 
 	public void terminate() {
 		this.terminated = true;
 	}
-  
-  private boolean checkSearch(String message) {
-  	if(message.contains(Constants.SSDP_DISCOVER_STRING) && message.contains(Constants.SSDP_DISCOVER_URN)) {
-  		log.debug("Found potential Alexa Discovery Request");
-  		return true;
-  	}
-  	return false;
-  }
-  
-  private void sendDiscoveryResponse(InetAddress requestAddress, int requestPort) {
+
+	private boolean checkSearch(String message) {
+		if (message.contains(Constants.SSDP_DISCOVER_STRING) && message.contains(Constants.SSDP_DISCOVER_URN)) {
+			log.debug("Found potential Alexa Discovery Request");
+			return true;
+		}
+		return false;
+	}
+
+	private void sendDiscoveryResponse(InetAddress requestAddress, int requestPort) {
 		Object[] response_params;
-		if(Config.getHttpIp().equals("")) {
-			response_params = new Object[]{this.address,""+this.port,Util.getHueBridgeIdFromMac(this.address),Util.getSNUUIDFromMac(this.address)};
+		if (Config.getHttpIp().equals("")) {
+			response_params = new Object[] { this.address, "" + this.port, Util.getHueBridgeIdFromMac(this.address),
+					Util.getSNUUIDFromMac(this.address) };
 		} else {
-			response_params = new Object[]{Config.getHttpIp(),""+this.port,Util.getHueBridgeIdFromMac(this.address),Util.getSNUUIDFromMac(this.address)};
+			response_params = new Object[] { Config.getHttpIp(), "" + this.port, Util.getHueBridgeIdFromMac(this.address),
+					Util.getSNUUIDFromMac(this.address) };
 		}
 		UDPSender us = new UDPSender(requestAddress.getHostAddress(), requestPort);
 		us.sendMessage(MessageFormat.format(Constants.responseTemplate1, response_params));
 		us.sendMessage(MessageFormat.format(Constants.responseTemplate2, response_params));
 		us.sendMessage(MessageFormat.format(Constants.responseTemplate3, response_params));
-		//us.sendMessage(MessageFormat.format(Constants.responseTemplate1, response_params);
-  	
-  	
-  }
-	
+		// us.sendMessage(MessageFormat.format(Constants.responseTemplate1,
+		// response_params);
+
+	}
+
 }

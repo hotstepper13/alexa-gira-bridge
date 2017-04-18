@@ -17,7 +17,5 @@ public class Percent {
 	public double getValue() {
 		return value;
 	}
-	
-	
-	
+
 }

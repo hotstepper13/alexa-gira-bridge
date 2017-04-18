@@ -26,16 +26,17 @@ public class Header {
 	public String getPayloadVersion() {
 		return payloadVersion;
 	}
+
 	public String getNamespace() {
 		return namespace;
 	}
+
 	public String getName() {
 		return name;
 	}
+
 	public String getMessageId() {
 		return messageId;
 	}
-	
-	
-	
+
 }

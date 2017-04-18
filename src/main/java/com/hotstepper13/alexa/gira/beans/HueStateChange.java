@@ -20,22 +20,22 @@ import java.util.List;
 
 public class HueStateChange {
 
-  private boolean on;
-  private int bri;
-  private int hue;
-  private int sat;
-  private String effect;
-  private int ct;
-  private String alert;
-  private List<Double> xy;
-  private int transitiontime;
-  private int bri_inc;
-  private int hue_inc;
-  private int sat_inc;
-  private List<Double> xy_inc;
-  private int ct_inc;
+	private boolean on;
+	private int bri;
+	private int hue;
+	private int sat;
+	private String effect;
+	private int ct;
+	private String alert;
+	private List<Double> xy;
+	private int transitiontime;
+	private int bri_inc;
+	private int hue_inc;
+	private int sat_inc;
+	private List<Double> xy_inc;
+	private int ct_inc;
 
-  public HueStateChange(boolean on, int bri, int hue, int sat, String effect, int ct, String alert, List<Double> xy,
+	public HueStateChange(boolean on, int bri, int hue, int sat, String effect, int ct, String alert, List<Double> xy,
 			int transitiontime, int bri_inc, int hue_inc, int sat_inc, List<Double> xy_inc, int ct_inc) {
 		super();
 		this.on = on;
@@ -116,7 +116,5 @@ public class HueStateChange {
 				+ ", ct=" + ct + ", alert=" + alert + ", xy=" + xy + ", transitiontime=" + transitiontime + ", bri_inc="
 				+ bri_inc + ", hue_inc=" + hue_inc + ", sat_inc=" + sat_inc + ", xy_inc=" + xy_inc + ", ct_inc=" + ct_inc + "]";
 	}
-	
-
 
 }

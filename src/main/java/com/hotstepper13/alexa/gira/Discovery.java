@@ -33,30 +33,30 @@ import com.hotstepper13.alexa.network.Util;
 public class Discovery {
 
 	private final static Logger log = LoggerFactory.getLogger(Discovery.class);
-	
-	private String objectJson="";
+
+	private String objectJson = "";
 	private String discovery_url;
 	private DiscoveryItem discoveryItem;
 	private final static int EXIT_ERROR = 0;
-	
+
 	public Discovery() {
-		Object[] params = new Object[]{Config.getHomeserverIp(),Config.getHomeserverPort(), Config.getToken()};
+		Object[] params = new Object[] { Config.getHomeserverIp(), Config.getHomeserverPort(), Config.getToken() };
 		this.discovery_url = MessageFormat.format(Constants.DISCOVERY_URL, params);
 		fetchDiscoverySSL();
 		parseDiscoveryResponse();
 	}
 
 	/**
-	 *  This Discovery requires a custom logic module to be installed
-	 *  in the homeserver
-	 *  
-	 *  see https://github.com/Picpol/HS-AmazonEcho
-	 *  https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/1010815-amazon-echo-logikbaustein
+	 * This Discovery requires a custom logic module to be installed in the
+	 * homeserver
+	 * 
+	 * see https://github.com/Picpol/HS-AmazonEcho
+	 * https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/1010815-amazon-echo-logikbaustein
 	 */
 	private void fetchDiscoverySSL() {
 		log.debug("Fetching Objects from Homeserver using url: " + this.discovery_url);
 
-		if(Config.isEnableSsl()) {
+		if (Config.isEnableSsl()) {
 			this.objectJson = Util.triggerHttpGetWithCustomSSL(this.discovery_url);
 		} else {
 			this.objectJson = Util.triggerHttpGet(this.discovery_url);
@@ -67,26 +67,30 @@ public class Discovery {
 	private void parseDiscoveryResponse() {
 		Gson gson = new Gson();
 		this.discoveryItem = gson.fromJson(this.objectJson, DiscoveryItem.class);
-		if(this.discoveryItem == null || this.discoveryItem.getPayload() == null || this.discoveryItem.getPayload().getDiscoveredAppliances() == null ) {
+		if (this.discoveryItem == null || this.discoveryItem.getPayload() == null
+				|| this.discoveryItem.getPayload().getDiscoveredAppliances() == null) {
 			log.error("Cannot fetch any appliance from homeserver. Check your Configuration and SSL certificate.");
-			log.error("If you have not enabled ssl in homeserver, you may switch to non ssl mode by passing \"--enable-ssl false\".");
+			log.error(
+					"If you have not enabled ssl in homeserver, you may switch to non ssl mode by passing \"--enable-ssl false\".");
 			log.error("The software will now terminate");
 			System.exit(EXIT_ERROR);
 		}
-		
+
 		addDiscoveryAppliance();
-		
-		log.info("Discoverered " + this.discoveryItem.getPayload().getDiscoveredAppliances().size() + " items from Homeserver");
+
+		log.info(
+				"Discoverered " + this.discoveryItem.getPayload().getDiscoveredAppliances().size() + " items from Homeserver");
 		Iterator<Appliance> appliances = this.discoveryItem.getPayload().getDiscoveredAppliances().iterator();
 		int i = 0;
-		while(appliances.hasNext()) {
-			Appliance item = (Appliance)appliances.next();
-			log.info(item.getFriendlyName() + " with id " + item.getApplianceId() + " (ListItem: " + i + ") has the following actions: ");
+		while (appliances.hasNext()) {
+			Appliance item = (Appliance) appliances.next();
+			log.info(item.getFriendlyName() + " with id " + item.getApplianceId() + " (ListItem: " + i
+					+ ") has the following actions: ");
 			Iterator<Appliance.Actions> actions = item.getActions().iterator();
-			while(actions.hasNext()) {
-				Appliance.Actions action = (Appliance.Actions)actions.next();
-				if(action != null) {
-					if(checkSupportedActions(action)) {
+			while (actions.hasNext()) {
+				Appliance.Actions action = (Appliance.Actions) actions.next();
+				if (action != null) {
+					if (checkSupportedActions(action)) {
 						log.info("  * " + action.name());
 					} else {
 						log.info("  * " + action.name() + " (currently not supported)");
@@ -103,9 +107,9 @@ public class Discovery {
 		Appliance a = new Appliance("Discovery", "0", Arrays.asList(Appliance.Actions.turnOn));
 		this.discoveryItem.getPayload().getDiscoveredAppliances().add(a);
 	}
-	
+
 	private boolean checkSupportedActions(Appliance.Actions action) {
-		if(action.equals(Appliance.Actions.setPercentage)) {
+		if (action.equals(Appliance.Actions.setPercentage)) {
 			return true;
 		} else if (action.equals(Appliance.Actions.turnOff)) {
 			return true;
@@ -118,7 +122,7 @@ public class Discovery {
 		}
 		return false;
 	}
-	
+
 	public String getObjectJson() {
 		return objectJson;
 	}
@@ -131,6 +135,4 @@ public class Discovery {
 		return discoveryItem;
 	}
 
-	
-	
 }

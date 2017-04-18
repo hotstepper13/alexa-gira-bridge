@@ -42,109 +42,112 @@ import com.hotstepper13.alexa.gira.beans.Appliance;
 import com.hotstepper13.alexa.gira.beans.DiscoveryItem;
 import com.hotstepper13.alexa.gira.beans.HueStateChange;
 
-public class TcpServer{
+public class TcpServer {
 
 	private static Logger log = LoggerFactory.getLogger(TcpServer.class);
-	
+
 	private int port;
 	private InetAddress ip;
 	private static ArrayList<Appliance> appliances;
 	private Trigger trigger;
 	private Gson gson;
-	
+
 	public TcpServer(int port, List<Appliance> appliances) {
 		TcpServer.appliances = new ArrayList<Appliance>(appliances);
 		this.port = port;
 		this.trigger = new Trigger(TcpServer.appliances);
 		this.gson = new Gson();
 		this.ip = this.getLocalAddress();
-		log.info("TCP Server found IP: " + this.ip.getHostAddress());		
-		if(!Config.getHttpIp().equals("")) {
+		log.info("TCP Server found IP: " + this.ip.getHostAddress());
+		if (!Config.getHttpIp().equals("")) {
 			log.info("Overwriting IP for Discovery calls with: " + Config.getHttpIp());
 		}
 
 		// configure port for spark server
 		port(port);
-		
+
 		// define handling for GET /description.xml
 		get("/description.xml", "application/xml; charset=utf-8", (request, response) -> {
 			log.info("Received request to /description.xml from " + request.ip());
 			Object[] params;
-			if(Config.getHttpIp().equals("")) {
-				params = new Object[]{this.ip,""+this.port};
+			if (Config.getHttpIp().equals("")) {
+				params = new Object[] { this.ip, "" + this.port };
 			} else {
-				params = new Object[]{Config.getHttpIp(),""+this.port};
+				params = new Object[] { Config.getHttpIp(), "" + this.port };
 			}
 			String xml = MessageFormat.format(Constants.HUE_DESCRIPTION, params);
-			response.type("application/xml; charset=utf-8"); 
-      response.status(HttpStatus.SC_OK);
-      return xml;
-    } );
-		
+			response.type("application/xml; charset=utf-8");
+			response.status(HttpStatus.SC_OK);
+			return xml;
+		});
+
 		// define handling for GET /api/<username>/lights
 		get("/api/:userid/lights", "application/json", (request, response) -> {
-			log.info("Received request to /api/"+request.params(":userid")+"/lights from " + request.ip());
+			log.info("Received request to /api/" + request.params(":userid") + "/lights from " + request.ip());
 			response.header("Access-Control-Allow-Origin", request.headers("Origin"));
 			response.type("application/json");
 			response.status(HttpStatus.SC_OK);
 			return this.buildLights();
-		} );
-		
+		});
+
 		// define handling for GET /api/<username>/lights/<id>
 		get("/api/:userid/lights/:id", "application/json", (request, response) -> {
-			log.info("Received request to /api/"+request.params(":userid")+"/lights/"+request.params(":id")+" from " + request.ip());
+			log.info("Received request to /api/" + request.params(":userid") + "/lights/" + request.params(":id") + " from "
+					+ request.ip());
 			response.header("Access-Control-Allow-Origin", request.headers("Origin"));
 			response.type("application/json");
 			String hueDevice = this.buildStateForID(new Integer(request.params(":id")).intValue());
-			if(!hueDevice.equals("")) {
+			if (!hueDevice.equals("")) {
 				response.status(HttpStatus.SC_OK);
 				return hueDevice;
 			} else {
 				response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR);
 				return "";
 			}
-		} );
-		
+		});
+
 		// define handling for PUT /api/{userId}/lights/{lightId}/state uses json
 		// object to set the lights state
 		put("/api/:userid/lights/:id/state", "application/json", (request, response) -> {
-			log.info("Received request to /api/"+request.params(":userid")+"/lights/"+request.params(":id")+"/state from " + request.ip());
+			log.info("Received request to /api/" + request.params(":userid") + "/lights/" + request.params(":id")
+					+ "/state from " + request.ip());
 			response.header("Access-Control-Allow-Origin", request.headers("Origin"));
 			response.type("application/json");
 			response.status(HttpStatus.SC_OK);
 			HueStateChange state = this.gson.fromJson(request.body(), HueStateChange.class);
 			boolean result = trigger.pull(new Integer(request.params(":id")).intValue(), state);
-			
-			if(result) {
-				return this.HueSuccess(request.params(":id"), state.isOn()?"on":"off");
+
+			if (result) {
+				return this.HueSuccess(request.params(":id"), state.isOn() ? "on" : "off");
 			} else {
-				return this.HueError(request.params(":id"), state.isOn()?"on":"off");
+				return this.HueError(request.params(":id"), state.isOn() ? "on" : "off");
 			}
 		});
-		
+
 		// define handling for PUT /api/{userId}/lights/{lightId} uses json
 		// object for a given light
 		get("/api/:userid/lights/:id", "application/json", (request, response) -> {
-			log.info("Received request to /api/"+request.params(":userid")+"/lights/"+request.params(":id")+" from " + request.ip());
+			log.info("Received request to /api/" + request.params(":userid") + "/lights/" + request.params(":id") + " from "
+					+ request.ip());
 			response.header("Access-Control-Allow-Origin", request.headers("Origin"));
 			response.type("application/json");
 			response.status(HttpStatus.SC_OK);
-			return TcpServer.appliances.get(new Integer(request.params(":id"))-1).getHueDevice();
+			return TcpServer.appliances.get(new Integer(request.params(":id")) - 1).getHueDevice();
 		});
-		
+
 	}
 
 	public String getAddress() {
 		return this.ip.getHostAddress();
 	}
-	
+
 	private String buildLights() {
 		log.info("Handle lights request");
 		String response = "{\r\n";
-		for(int i=0;i<appliances.size();i++) {
-			appliances.get(i).setHueId(i+1);
+		for (int i = 0; i < appliances.size(); i++) {
+			appliances.get(i).setHueId(i + 1);
 			response = response + "	\"" + appliances.get(i).getHueId() + "\": " + appliances.get(i).getHueDevice();
-			if(i<appliances.size()-1) {
+			if (i < appliances.size() - 1) {
 				response = response + ",";
 			}
 		}
@@ -155,99 +158,105 @@ public class TcpServer{
 	}
 
 	private String HueSuccess(String id, String state) {
-		Object[] params = new Object[]{id,state};
+		Object[] params = new Object[] { id, state };
 		String response = "\"/lights/{0}/state/{1}\"";
 		return "{\"success\":{" + MessageFormat.format(response, params) + ":true}}";
 	}
-	
+
 	private String HueError(String id, String state) {
-		Object[] params = new Object[]{id,state};
+		Object[] params = new Object[] { id, state };
 		String response = "\"/lights/{0}/state/{1}\"";
 		return "{\"error\":{" + MessageFormat.format(response, params) + ":false}}";
-	}	
+	}
 
-	
 	private String buildStateForID(int id) {
-		
-		//Bugfix if devices are removed
-		if(id > TcpServer.appliances.size()) {
-			log.info("Called ID was larger amount of Appliances in List. Assume Discovery with removed Appliance was triggered");
+
+		// Bugfix if devices are removed
+		if (id > TcpServer.appliances.size()) {
+			log.info(
+					"Called ID was larger amount of Appliances in List. Assume Discovery with removed Appliance was triggered");
 			log.info("Return dummy device with Hue State");
 			Appliance a = new Appliance("Discovery", "0", Arrays.asList(Appliance.Actions.turnOn));
 			a.setOn(true);
 			return a.getHueDevice();
 		}
-		
-		Appliance app = TcpServer.appliances.get(id-1);
+
+		Appliance app = TcpServer.appliances.get(id - 1);
 		Gson gson = new Gson();
 		DiscoveryItem onOff;
 		DiscoveryItem percent;
 		Object[] params;
-		if(app.getActions().contains(Appliance.Actions.turnOff) || app.getActions().contains(Appliance.Actions.turnOn)) {
-			if(app.getApplianceId().equals("0")) {
+		if (app.getActions().contains(Appliance.Actions.turnOff) || app.getActions().contains(Appliance.Actions.turnOn)) {
+			if (app.getApplianceId().equals("0")) {
 				app.setOn(true);
 			} else {
-				//Fetch OnOff
-				params = new Object[]{Config.getHomeserverIp(),Config.getHomeserverPort(), app.getApplianceId(), Config.getToken()};
-				if(Config.isEnableSsl()) {
-					onOff = gson.fromJson(Util.triggerHttpGetWithCustomSSL(MessageFormat.format(Constants.ONOFFVALUE_URL, params)), DiscoveryItem.class);
+				// Fetch OnOff
+				params = new Object[] { Config.getHomeserverIp(), Config.getHomeserverPort(), app.getApplianceId(),
+						Config.getToken() };
+				if (Config.isEnableSsl()) {
+					onOff = gson.fromJson(
+							Util.triggerHttpGetWithCustomSSL(MessageFormat.format(Constants.ONOFFVALUE_URL, params)),
+							DiscoveryItem.class);
 				} else {
-					onOff = gson.fromJson(Util.triggerHttpGet(MessageFormat.format(Constants.ONOFFVALUE_URL, params)), DiscoveryItem.class);
+					onOff = gson.fromJson(Util.triggerHttpGet(MessageFormat.format(Constants.ONOFFVALUE_URL, params)),
+							DiscoveryItem.class);
 				}
 				app.setOn(onOff.getPayload().getOnOff().isValue());
 			}
 		}
-		
-		
-		if(app.getActions().contains(Appliance.Actions.setPercentage) || app.getActions().contains(Appliance.Actions.incrementPercentage) || app.getActions().contains(Appliance.Actions.decrementPercentage)) {
-			//Fetch Percent
-			params = new Object[]{Config.getHomeserverIp(),Config.getHomeserverPort(), app.getApplianceId(), Config.getToken()};
-			if(Config.isEnableSsl()) {
-				percent = gson.fromJson(Util.triggerHttpGetWithCustomSSL(MessageFormat.format(Constants.PERCENTVALUE_URL, params)), DiscoveryItem.class);
+
+		if (app.getActions().contains(Appliance.Actions.setPercentage)
+				|| app.getActions().contains(Appliance.Actions.incrementPercentage)
+				|| app.getActions().contains(Appliance.Actions.decrementPercentage)) {
+			// Fetch Percent
+			params = new Object[] { Config.getHomeserverIp(), Config.getHomeserverPort(), app.getApplianceId(),
+					Config.getToken() };
+			if (Config.isEnableSsl()) {
+				percent = gson.fromJson(
+						Util.triggerHttpGetWithCustomSSL(MessageFormat.format(Constants.PERCENTVALUE_URL, params)),
+						DiscoveryItem.class);
 			} else {
-				percent = gson.fromJson(Util.triggerHttpGet(MessageFormat.format(Constants.PERCENTVALUE_URL, params)), DiscoveryItem.class);
+				percent = gson.fromJson(Util.triggerHttpGet(MessageFormat.format(Constants.PERCENTVALUE_URL, params)),
+						DiscoveryItem.class);
 			}
-			//calculate compatible value (0-255)
+			// calculate compatible value (0-255)
 			double returnValue = percent.getPayload().getPercent().getValue();
-			if(returnValue == 100.0) {
+			if (returnValue == 100.0) {
 				app.setBri(255);
 			} else if (returnValue > 0) {
-				app.setBri(new Double((returnValue/100)*255).intValue());
+				app.setBri(new Double((returnValue / 100) * 255).intValue());
 			} else {
-				app.setBri(0);	
+				app.setBri(0);
 			}
 		}
 
 		return app.getHueDevice();
 	}
-	
-  public InetAddress getLocalAddress() {
-    try {
-	  	Enumeration<NetworkInterface> ifaces = NetworkInterface.getNetworkInterfaces();
-	    while( ifaces.hasMoreElements() ) {
-	      NetworkInterface iface = ifaces.nextElement();
-	      Enumeration<InetAddress> addresses = iface.getInetAddresses();
-	
-	      while( addresses.hasMoreElements() ) {
-	        InetAddress addr = addresses.nextElement();
-	        if( addr instanceof Inet4Address && !addr.isLoopbackAddress() ) {
-	          return addr;
-	        }
-	      }
-	    }
-    } catch (SocketException se) {
-    	log.error("Cannot determine local ipv4 address.", se);
-    }
 
-    return null;
-  }
-	
-  public static void updateAppliances(List<Appliance> appliances) {
-  	log.info("Update Appliances in TcpServer");
-  	TcpServer.appliances = new ArrayList<Appliance>(appliances);
-  }
-  
-  
+	public InetAddress getLocalAddress() {
+		try {
+			Enumeration<NetworkInterface> ifaces = NetworkInterface.getNetworkInterfaces();
+			while (ifaces.hasMoreElements()) {
+				NetworkInterface iface = ifaces.nextElement();
+				Enumeration<InetAddress> addresses = iface.getInetAddresses();
+
+				while (addresses.hasMoreElements()) {
+					InetAddress addr = addresses.nextElement();
+					if (addr instanceof Inet4Address && !addr.isLoopbackAddress()) {
+						return addr;
+					}
+				}
+			}
+		} catch (SocketException se) {
+			log.error("Cannot determine local ipv4 address.", se);
+		}
+
+		return null;
+	}
+
+	public static void updateAppliances(List<Appliance> appliances) {
+		log.info("Update Appliances in TcpServer");
+		TcpServer.appliances = new ArrayList<Appliance>(appliances);
+	}
+
 }
-
-

@@ -26,26 +26,25 @@ public class Config {
 	private static String token;
 	private static boolean enableSsl = true;
 	private static String httpIp = "";
-	
+
 	private final static Logger log = LoggerFactory.getLogger(Config.class);
-	
+
 	public Config() {
-		
+
 	}
-	
+
 	public static boolean isSetup() {
-		if(Config.homeserverIp != null && !Config.homeserverIp.equals("") && 
-				Config.homeserverPort != null && !Config.homeserverPort.equals("") &&
-				Config.token != null && !Config.token.equals("")) {
+		if (Config.homeserverIp != null && !Config.homeserverIp.equals("") && Config.homeserverPort != null
+				&& !Config.homeserverPort.equals("") && Config.token != null && !Config.token.equals("")) {
 			log.info("Initialized config");
 			log.info("HomeserverIp: " + Config.homeserverIp);
 			log.info("HomeserverPort: " + Config.homeserverPort);
-			if(log.isDebugEnabled()) {
+			if (log.isDebugEnabled()) {
 				log.debug("Token: " + Config.token);
 			} else {
 				log.info("Token: " + Config.token.replaceAll(".", "*") + " (Hint: enable debug to show cleartext!)");
 			}
-			return true;	 
+			return true;
 		} else {
 			return false;
 		}
@@ -91,6 +90,4 @@ public class Config {
 		Config.httpIp = httpIp;
 	}
 
-	
-	
 }

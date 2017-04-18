@@ -23,7 +23,7 @@ public class Payload {
 	private List<Appliance> discoveredAppliances;
 	private OnOff onOff;
 	private Percent percent;
-	
+
 	public List<Appliance> getDiscoveredAppliances() {
 		return discoveredAppliances;
 	}
@@ -34,6 +34,6 @@ public class Payload {
 
 	public Percent getPercent() {
 		return percent;
-	}	
-	
+	}
+
 }

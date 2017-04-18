@@ -17,7 +17,5 @@ public class OnOff {
 	public boolean isValue() {
 		return (value > 0);
 	}
-	
-	
-	
+
 }
