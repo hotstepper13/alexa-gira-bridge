@@ -109,7 +109,7 @@ public class Util {
 	    CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
 	    
 	    
-	    HttpGet httpGet = new HttpGet(requestUrl);
+	    HttpGet httpGet = new HttpGet("https://" + requestUrl);
 	    CloseableHttpResponse response = httpclient.execute(httpGet);
 	    try {
 	    	if( response.getStatusLine().getStatusCode() == HttpStatus.SC_OK ) {
@@ -132,7 +132,7 @@ public class Util {
 	public static String triggerHttpGet(String requestUrl) {
 		String result = null;
 		HttpClient client = HttpClientBuilder.create().build();
-		HttpGet request = new HttpGet(requestUrl);
+		HttpGet request = new HttpGet("http://" + requestUrl);
 		try {
 			HttpResponse response = client.execute(request);
     	if( response.getStatusLine().getStatusCode() == HttpStatus.SC_OK ) {

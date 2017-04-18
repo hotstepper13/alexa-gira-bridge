@@ -18,15 +18,15 @@ package com.hotstepper13.alexa.configuration;
 
 public class Constants {
 
-	public final static String DISCOVERY_URL = "https://{0}:{1}/discovery?accessToken={2}&messageId=xyz";
-	public final static String ONOFFVALUE_URL = "https://{0}:{1}/control?applianceId={2}&request=GetOnOffValueRequest&accessToken={3}&messageId=xyz";
-	public final static String PERCENTVALUE_URL = "https://{0}:{1}/control?applianceId={2}&request=GetPercentValueRequest&accessToken={3}&messageId=xyz";
+	public final static String DISCOVERY_URL = "{0}:{1}/discovery?accessToken={2}&messageId=xyz";
+	public final static String ONOFFVALUE_URL = "{0}:{1}/control?applianceId={2}&request=GetOnOffValueRequest&accessToken={3}&messageId=xyz";
+	public final static String PERCENTVALUE_URL = "{0}:{1}/control?applianceId={2}&request=GetPercentValueRequest&accessToken={3}&messageId=xyz";
 	public final static int SSDP_PORT = 1900;
 	public final static String MULTICAST_ADDRESS = "239.255.255.250";
 	public final static String SSDP_DISCOVER_STRING = "ssdp:discover";
 	public final static String SSDP_DISCOVER_URN = "urn:schemas-upnp-org:device:basic:1";
-	public final static String GIRA_REQUEST_TEMPLATE = "https://{0}:{1}/control?applianceId={2}&request={3}&accessToken={4}&messageId=xyz";
-	public final static String GIRA_REQUEST_VALUE_TEMPLATE = "https://{0}:{1}/control?applianceId={2}&request={3}&accessToken={4}&value={5}&messageId=xyz";
+	public final static String GIRA_REQUEST_TEMPLATE = "{0}:{1}/control?applianceId={2}&request={3}&accessToken={4}&messageId=xyz";
+	public final static String GIRA_REQUEST_VALUE_TEMPLATE = "{0}:{1}/control?applianceId={2}&request={3}&accessToken={4}&value={5}&messageId=xyz";
 	
 	/**
 	 * The following constants were taken from https://github.com/bwssytems/ha-bridge
