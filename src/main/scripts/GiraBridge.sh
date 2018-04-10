@@ -28,6 +28,7 @@ HOMESERVER_PORT=
 TOKEN=
 ENABLE_SSL=true
 HTTP_IP=""
+BRIDGE_PORT="4711"
 
 # This setting will always be read from this configuration
 DEBUG=false
@@ -57,11 +58,12 @@ if [ ! -f ${SAVE_CONFIG_FILE} ] ; then
     echo "TOKEN=${TOKEN}" >> ${SAVE_CONFIG_FILE}
     echo "ENABLE_SSL=true" >> ${SAVE_CONFIG_FILE}
     echo "HTTP_IP=\"\"" >> ${SAVE_CONFIG_FILE}
+    echo "BRIDGE_PORT=\"${BRIDGE_PORT}\"" >> ${SAVE_CONFIG_FILE}
     echo "LOADEDCONFIG=1" >> ${SAVE_CONFIG_FILE}
   fi
 
 fi
 
 
-java -jar gira-bridge-${project.version}-jar-with-dependencies.jar --homeserver-ip ${HOMESERVER_IP} --homeserver-port ${HOMESERVER_PORT} --token ${TOKEN} --debug ${DEBUG} --enable-ssl ${ENABLE_SSL} --http-ip ${HTTP_IP}
+java -jar gira-bridge-${project.version}-jar-with-dependencies.jar --homeserver-ip ${HOMESERVER_IP} --homeserver-port ${HOMESERVER_PORT} --token ${TOKEN} --debug ${DEBUG} --enable-ssl ${ENABLE_SSL} --bridge-port ${BRIDGE_PORT} --http-ip ${HTTP_IP}
 

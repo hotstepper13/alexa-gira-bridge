@@ -12,7 +12,7 @@ Execute without parameters to get usage information
 ## Requirements
 - Memory: N/A
 - Java: JDK8 (tested with Oracle JDK)
-- Networkports: UDP/1900, TCP/4711
+- Networkports: UDP/1900, TCP/4711 (configurable)
 
 ## Limitation
 - Currently it is only possible to switch on/off and dim a light.
@@ -41,6 +41,11 @@ Enable ssl for bridge<->Homeserver communication (Default true)
 
 Overwrite ip address for discovery reponse (useful while running behind a proxy or in docker, default empty)
 `--http-ip <reachable-ip-address>`
+
+### Change port of bridge software
+If you want to run the software on another port for whatever reason, you can at least change the service port. (UPNP cannot be changed due to protocol)
+`--bridge-port <int>` will ensure that the service will listen on this port. If this parameter is not provided, the service will start on port 4711.
+Note: You should provide a port number above 1024, otherwise you will need super user permissions to run the service!
 
 ### Docker
 As requested within kns-user-forum a docker version of this software is now also available.

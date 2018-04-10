@@ -30,7 +30,7 @@ public class GiraBridge {
 
 	private final static Logger log = LoggerFactory.getLogger(GiraBridge.class);
 	public static Config config;
-	private final static int port = 4711;
+	private static int port = 4711;
 
 	public static void main(String[] args) throws InterruptedException {
 		System.setProperty("java.net.preferIPv4Stack", "true");
@@ -55,6 +55,13 @@ public class GiraBridge {
 			} else if (args[i].equals("--enable-ssl")) {
 				i++;
 				Config.setEnableSsl(new Boolean(args[i]).booleanValue());
+			} else if (args[i].equals("--bridge-port")) {
+				i++;
+				try {
+					GiraBridge.port = Integer.parseInt(args[i]);
+				} catch (NumberFormatException nfe) {
+					log.error("Cannot parse bridge-port, given value must be int. Provided value: \"" + args[i] + "\". Using default port!");
+				}
 			} else if (args[i].equals("--debug")) {
 				i++;
 				if (new Boolean(args[i]).booleanValue()) {
