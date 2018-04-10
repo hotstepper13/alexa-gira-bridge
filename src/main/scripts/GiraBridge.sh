@@ -37,6 +37,10 @@ DEBUG=false
 # DO NOT EDIT BELOW THIS LINE UNLESS YOU KNOW WHAT YOU ARE DOING                                    #
 #####################################################################################################
 
+# workaround if you try to start without changing directory first
+SCRIPTPATH=`dirname "$0"`
+cd ${SCRIPTPATH}
+
 SAVE_CONFIG_DIR=~/.gira-bridge
 SAVE_CONFIG_FILE=${SAVE_CONFIG_DIR}/settings.conf
 
