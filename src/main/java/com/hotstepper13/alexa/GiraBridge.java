@@ -16,11 +16,16 @@
  *******************************************************************************/
 package com.hotstepper13.alexa;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hotstepper13.alexa.configuration.Config;
+import com.google.gson.Gson;
 import com.hotstepper13.alexa.gira.Discovery;
+import com.hotstepper13.alexa.gira.Homeserver;
+import com.hotstepper13.alexa.gira.beans.Configuration;
 import com.hotstepper13.alexa.network.TcpServer;
 import com.hotstepper13.alexa.network.upnp.UpnpServer;
 
@@ -29,86 +34,71 @@ import ch.qos.logback.classic.Level;
 public class GiraBridge {
 
 	private final static Logger log = LoggerFactory.getLogger(GiraBridge.class);
-	public static Config config;
-	private static int port = 4711;
+	public static Configuration config = null;
+	public static Discovery discovery;
+	public static int port = 4711;
+	private static String configFile = "";
+	public static boolean isDebug = false;
+	public static Homeserver hs;
 
 	public static void main(String[] args) throws InterruptedException {
 		System.setProperty("java.net.preferIPv4Stack", "true");
 
-		GiraBridge.config = new Config();
-
+		
+		// read path for configuration file from parameters
 		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("--homeserver-ip")) {
+			if (args[i].equals("--config-file")) {
 				i++;
-				Config.setHomeserverIp(args[i]);
-			} else if (args[i].equals("--homeserver-port")) {
-				i++;
-				Config.setHomeserverPort(args[i]);
-			} else if (args[i].equals("--token")) {
-				i++;
-				Config.setToken(args[i]);
-			} else if (args[i].equals("--http-ip")) {
-				i++;
-				if (i < args.length) {
-					Config.setHttpIp(args[i]);
-				}
-			} else if (args[i].equals("--enable-ssl")) {
-				i++;
-				Config.setEnableSsl(new Boolean(args[i]).booleanValue());
-			} else if (args[i].equals("--bridge-port")) {
-				i++;
-				try {
-					GiraBridge.port = Integer.parseInt(args[i]);
-				} catch (NumberFormatException nfe) {
-					log.error("Cannot parse bridge-port, given value must be int. Provided value: \"" + args[i] + "\". Using default port!");
-				}
+				configFile = args[i];
 			} else if (args[i].equals("--debug")) {
 				i++;
 				if (new Boolean(args[i]).booleanValue()) {
 					ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory
 							.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
 					root.setLevel(Level.DEBUG);
+					isDebug = true;
 				}
 			}
 		}
-
-		if (!Config.isSetup()) {
-			log.error("Not enough parameters provided!");
+		
+		// read the configuration
+		Gson gson = new Gson();
+		BufferedReader bufferedReader=null;
+		try {
+			bufferedReader = new BufferedReader(new FileReader(configFile));
+			config = gson.fromJson(bufferedReader, Configuration.class);
+		} catch (Throwable t) {
+			log.error("Cannot read configfile:" +  t.toString());
 			GiraBridge.usage();
 			System.exit(1);
 		}
-
+		
+		log.info("Config was read successfully");
+		log.debug(config.getHomeserver().toString());
+		GiraBridge.hs = new Homeserver(config.getHomeserver());
+		if(GiraBridge.config.getBridgeConfig().getPort() != 0) {
+			GiraBridge.port = GiraBridge.config.getBridgeConfig().getPort();
+		}
+		
 		// Start the discovery process
-		Discovery discovery = new Discovery();
+		discovery = new Discovery();
 
 		// Start a TCP Server for echo <-> Hue communication
-		TcpServer tcp = new TcpServer(GiraBridge.port, discovery.getDiscoveryItem().getPayload().getDiscoveredAppliances());
+		TcpServer tcp = new TcpServer();
 
 		// Start UPNP Server for discovery process
 		UpnpServer upnpServer = new UpnpServer(tcp.getAddress(), GiraBridge.port);
+		log.debug("Starting UPNP on interface: " + tcp.getAddress());
 		upnpServer.start();
 
+		
 	}
 
 	private static void usage() {
 		System.out.println("");
 		System.out.println("Usage:");
 		System.out.println(
-				"java -jar <jarfile> --homeserver-ip <homeserverIp> --homeserver-port <homeserverPort> --token <token> (Optional: --debug true)");
-		System.out.println("");
-		System.out.println("To start regular (Info logging):");
-		System.out.println(
-				"java -jar GiraBridge-jar-with-dependencies.jar --homeserver-ip 192.168.0.15 --homeserver-port 30000 --token superCOOLpassword");
-		System.out.println("");
-		System.out.println("To start in debug mode just add \"--debug true\" (token/passwords will be visible!):");
-		System.out.println(
-				"java -jar GiraBridge-jar-with-dependencies.jar --homeserver-ip 192.168.0.15 --homeserver-port 30000 --token superCOOLpassword --debug true");
-		System.out.println("");
-		System.out.println("Additional option for special circumstances:");
-		System.out.println(
-				"--enable-ssl: true (default)/false; can be used to disable https based communication to the homeserver");
-		System.out.println(
-				"--http-ip: <String>; IP Address to be used in description.xml to point Alexa to the right system. Useful in docker environment or if you want to operate behind any kind of proxy");
+				"java -jar <jarfile> --config-file <path_to_json_config> (Optional: --debug true)");
 		System.out.println("");
 	}
 

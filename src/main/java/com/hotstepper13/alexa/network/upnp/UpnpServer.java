@@ -25,7 +25,7 @@ import java.text.MessageFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hotstepper13.alexa.configuration.Config;
+import com.hotstepper13.alexa.GiraBridge;
 import com.hotstepper13.alexa.configuration.Constants;
 import com.hotstepper13.alexa.network.UDPSender;
 import com.hotstepper13.alexa.network.Util;
@@ -49,6 +49,8 @@ public class UpnpServer extends Thread {
 			this.msocket = new MulticastSocket(Constants.SSDP_PORT);
 			this.msocket.setReuseAddress(true);
 			this.msocket.joinGroup(multicastAddress);
+			//this.msocket.setInterface(InetAddress.getByName(address));
+			
 			byte[] buffer = new byte[2048];
 			DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 			while (!this.terminated) {
@@ -57,7 +59,7 @@ public class UpnpServer extends Thread {
 				if (message.contains("M-SEARCH")) {
 					log.debug("Received Search Request from " + packet.getSocketAddress().toString() + ":\n" + message);
 					if (this.checkSearch(message) && packet.getPort() == 50000) {
-						log.info("DiscoveryResponse needed");
+						log.info("DiscoveryResponse needed for " + packet.getAddress() + ":" + packet.getPort());
 						this.sendDiscoveryResponse(packet.getAddress(), packet.getPort());
 					}
 				}
@@ -71,12 +73,13 @@ public class UpnpServer extends Thread {
 		}
 	}
 
+
 	public void terminate() {
 		this.terminated = true;
 	}
 
 	private boolean checkSearch(String message) {
-		if (message.contains(Constants.SSDP_DISCOVER_STRING) && message.contains(Constants.SSDP_DISCOVER_URN)) {
+		if (message.contains(Constants.SSDP_DISCOVER_STRING)){// && (message.contains(Constants.SSDP_DISCOVER_URN) || message.contains(Constants.SSDP_DISCOVER_URN_NEW))) {
 			log.debug("Found potential Alexa Discovery Request");
 			return true;
 		}
@@ -85,12 +88,10 @@ public class UpnpServer extends Thread {
 
 	private void sendDiscoveryResponse(InetAddress requestAddress, int requestPort) {
 		Object[] response_params;
-		if (Config.getHttpIp().equals("")) {
-			response_params = new Object[] { this.address, "" + this.port, Util.getHueBridgeIdFromMac(this.address),
-					Util.getSNUUIDFromMac(this.address) };
+		if (GiraBridge.config.getBridgeConfig().getIp().equals("")) {
+			response_params = new Object[] { this.address, "" + this.port, Util.getHueBridgeIdFromMac(this.address),Util.getSNUUIDFromMac(this.address) };
 		} else {
-			response_params = new Object[] { Config.getHttpIp(), "" + this.port, Util.getHueBridgeIdFromMac(this.address),
-					Util.getSNUUIDFromMac(this.address) };
+			response_params = new Object[] { GiraBridge.config.getBridgeConfig().getIp(), "" + this.port, Util.getHueBridgeIdFromMac(this.address),Util.getSNUUIDFromMac(this.address) };
 		}
 		UDPSender us = new UDPSender(requestAddress.getHostAddress(), requestPort);
 		us.sendMessage(MessageFormat.format(Constants.responseTemplate1, response_params));

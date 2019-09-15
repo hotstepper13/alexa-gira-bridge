@@ -30,10 +30,29 @@ public class Appliance {
 	private int hueId;
 	private boolean isOn = false;
 	private int bri = 0;
+	private String idSwitch;
+	private String idTrigger;
+	private String idPercentage;
 
+	public Appliance() {
+		
+	}
+	
 	public Appliance(String friendlyName, String applianceId, List<Actions> actions) {
 		this.friendlyName = friendlyName;
 		this.applianceId = applianceId;
+		this.actions = actions;
+	}
+	
+	public void setFriendlyName(String friendlyName) {
+		this.friendlyName = friendlyName;
+	}
+
+	public void setApplianceId(String applianceId) {
+		this.applianceId = applianceId;
+	}
+
+	public void setActions(List<Actions> actions) {
 		this.actions = actions;
 	}
 
@@ -77,6 +96,30 @@ public class Appliance {
 	@Override
 	public String toString() {
 		return friendlyName + " - " + applianceId + " - " + actions;
+	}
+
+	public String getIdSwitch() {
+		return idSwitch;
+	}
+
+	public void setIdSwitch(String idSwitch) {
+		this.idSwitch = idSwitch;
+	}
+
+	public String getIdTrigger() {
+		return idTrigger;
+	}
+
+	public void setIdTrigger(String idTrigger) {
+		this.idTrigger = idTrigger;
+	}
+
+	public String getIdPercentage() {
+		return idPercentage;
+	}
+
+	public void setIdPercentage(String idPercentage) {
+		this.idPercentage = idPercentage;
 	}
 
 	public String getHueDevice() {

@@ -18,28 +18,26 @@ package com.hotstepper13.alexa.gira;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hotstepper13.alexa.configuration.Config;
-import com.hotstepper13.alexa.configuration.Constants;
+import com.hotstepper13.alexa.GiraBridge;
 import com.hotstepper13.alexa.gira.beans.Appliance;
+import com.hotstepper13.alexa.gira.beans.HomeserverResponse;
 import com.hotstepper13.alexa.gira.beans.HueStateChange;
-import com.hotstepper13.alexa.network.TcpServer;
-import com.hotstepper13.alexa.network.Util;
 
 public class Trigger {
 
 	private final static Logger log = LoggerFactory.getLogger(Trigger.class);
 
-	private static ArrayList<Appliance> appliances;
-
-	public Trigger(ArrayList<Appliance> appliances) {
+	private static List<Appliance> appliances;
+	private static Homeserver homeserver;
+	
+	public Trigger(List<Appliance> appliances) {
 		Trigger.appliances = appliances;
+		homeserver = new Homeserver(GiraBridge.config.getHomeserver());
 	}
 
 	public boolean pull(int id, HueStateChange state) {
@@ -50,28 +48,31 @@ public class Trigger {
 		double value = 666.0;
 		double maxValue = 255.0;
 		int percMultiplier = 100;
+		String actionId = "";
 
 		// id = 0 == update Discovery
-		// getBri != 0 == setPercentate
-		// bri_inc > 0 == incrementPercentate
-		// bri_inc < 0 == decrementPercentate
+		// getBri != 0 == setPercentage
+		// bri_inc > 0 == incrementPercentage
+		// bri_inc < 0 == decrementPercentage
 		// getBri = 0 && state = on == turn on
 		// getBri = 0 && state = off == turn off
 		if (id == Trigger.appliances.size()) {
-			Discovery d = new Discovery();
-			TcpServer.updateAppliances(d.getDiscoveryItem().getPayload().getDiscoveredAppliances());
-			Trigger.updateAppliances(d.getDiscoveryItem().getPayload().getDiscoveredAppliances());
+			log.warn("Request for not available id");
 			return true;
 		} else if (!state.isOn() && state.getBri() == 0 && state.getBri_inc() == 0) {
 			// turn off
 			if (appliance.getActions().contains(Appliance.Actions.turnOff)) {
 				log.info("Sending TurnOffRequest to " + appliance.getFriendlyName());
 				action = "TurnOffRequest";
+				value = 0.0;
+				actionId = getActionIdForAppliance(appliance);
 			} else if (!appliance.getActions().contains(Appliance.Actions.turnOff)
 					&& appliance.getActions().contains(Appliance.Actions.turnOn)) {
 				log.info("TurnOff Requested but TurnOff is not defined for appliance " + appliance.getFriendlyName()
 						+ " overwriting to TurnOn which is defined for this appliance");
 				action = "TurnOnRequest";
+				value = 1.0;
+				actionId = getActionIdForAppliance(appliance);
 			} else {
 				log.error("TurnOff was requested but neither TurnOff nor TurnOn is a valid action for appliance "
 						+ appliance.getFriendlyName());
@@ -82,11 +83,15 @@ public class Trigger {
 			if (appliance.getActions().contains(Appliance.Actions.turnOn)) {
 				log.info("Sending TurnOnRequest to " + appliance.getFriendlyName());
 				action = "TurnOnRequest";
+				value = 1.0;
+				actionId = getActionIdForAppliance(appliance);
 			} else if (!appliance.getActions().contains(Appliance.Actions.turnOn)
 					&& appliance.getActions().contains(Appliance.Actions.turnOff)) {
 				log.info("TurnOn Requested but TurnOn is not defined for appliance " + appliance.getFriendlyName()
 						+ " overwriting to TurnOff which is defined for this appliance");
 				action = "TurnOffRequest";
+				value = 0.0;
+				actionId = getActionIdForAppliance(appliance);
 			} else {
 				log.error("TurnOn was requested but neither TurnOn nor TurnOff is a valid action for appliance "
 						+ appliance.getFriendlyName());
@@ -97,6 +102,7 @@ public class Trigger {
 			if (appliance.getActions().contains(Appliance.Actions.setPercentage)) {
 				action = "SetPercentageRequest";
 				value = round(new Double((state.getBri() / maxValue) * percMultiplier).doubleValue(), 1);
+				actionId = appliance.getIdPercentage();
 				log.info("Sending SetPercentageRequest with value " + value + " to appliance " + appliance.getFriendlyName());
 			} else {
 				log.error("SetPercentage was requested but SetPercentation id not a valid action for appliance "
@@ -113,41 +119,39 @@ public class Trigger {
 			log.error("Cannot determine needed action. State: " + state.toString());
 		}
 
-		if (action.equals(circuitBreaker)) {
+		if (action.equals(circuitBreaker) || actionId.equals("")) {
 			return false;
 		} else {
-			return requestGiraChange(appliance.getApplianceId(), action, value);
+			return requestGiraChange(actionId, action, value);
 		}
 	}
 
-	public boolean requestGiraChange(String applianceId, String action, double value) {
+	
+	public boolean requestGiraChange(String groupaddress, String action, double value) {
+		log.info("Received statechange for " + groupaddress + " with action " + action + " to value " + value);
 		boolean result = false;
-		Object[] params;
-		String request;
-		if (value == 666.0) {
-			params = new Object[] { Config.getHomeserverIp(), Config.getHomeserverPort(), applianceId, action,
-					Config.getToken() };
-			request = MessageFormat.format(Constants.GIRA_REQUEST_TEMPLATE, params);
-		} else {
-			params = new Object[] { Config.getHomeserverIp(), Config.getHomeserverPort(), applianceId, action,
-					Config.getToken(), ("" + value).replace(",", ".") };
-			request = MessageFormat.format(Constants.GIRA_REQUEST_VALUE_TEMPLATE, params);
-		}
-		String response;
-		if (Config.isEnableSsl()) {
-			response = Util.triggerHttpGetWithCustomSSL(request);
-		} else {
-			response = Util.triggerHttpGet(request);
-		}
-		if (response != null) {
+		HomeserverResponse response = homeserver.setDoubleValueForKey(groupaddress, value);
+		log.debug("Homeserver response was " + response.getCode());
+		if(response.getCode() == 0 ) {
 			result = true;
 		}
 		return result;
 	}
 
-	public static void updateAppliances(List<Appliance> appliances) {
+	private static String getActionIdForAppliance(Appliance appliance) {
+		if(appliance.getIdSwitch() != null) {
+			return appliance.getIdSwitch();
+		} else if (appliance.getIdTrigger() != null) {
+			return appliance.getIdTrigger();
+		} else {
+			log.error("Cannot determin the right group address for appliance " + appliance.getFriendlyName());
+			return "";
+		}
+	}
+	
+	public static void updateAppliances() {
 		log.info("Update Appliances in Trigger");
-		Trigger.appliances = new ArrayList<Appliance>(appliances);
+		Trigger.appliances = GiraBridge.discovery.appliances;
 	}
 
 	public static double round(double value, int places) {

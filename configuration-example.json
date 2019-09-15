@@ -1,0 +1,52 @@
+{
+    "hsConfig": { 
+      "ip": "192.168.0.125",
+      "username": "amazonEcho",
+      "password": "superSavePassword88!"
+    },
+    "bridgeConfig": {
+      "ip": "",
+      "port": 4711
+    },
+    "rooms": [
+      { "room": "Atrium", "id": 1, "items": [
+        { "item": "Garage", "id": 1, "idSwitch": "2_2_0" },
+        { "item": "Nord", "id": 2, "idSwitch": "2_2_6" },
+        { "item": "Süd", "id": 3, "idSwitch": "2_2_1" }
+      ]},
+      { "room": "Büro", "id": 2, "items": [
+        { "item": "Alles", "id": 1, "idTrigger": "4_0_9" },
+        { "item": "Deckenlampe", "id": 2, "idSwitch": "0_1_6", "idPercentage": "0_4_6" },
+        { "item": "Gemütlich", "id": 3, "idTrigger": "4_0_0" },
+        { "item": "Stripe", "id": 4, "idSwitch": "0_1_108", "idPercentage": "0_4_108" }
+      ]},
+      { "room": "Esszimmer", "id": 3, "items": [
+        { "item": "Ambient", "id": 1, "idSwitch": "2_1_18" },
+        { "item": "Präsenzmelder", "id": 2, "idSwitch": "0_7_102" },
+        { "item": "Deckenlampe", "id": 3, "idSwitch": "0_1_2", "idPercentage": "0_4_2" }
+      ]},
+      { "room": "Garten", "id": 4, "items": [
+        { "item": "Licht", "id": 1, "idTrigger": "4_0_99" },
+        { "item": "Pavillion", "id": 2, "idTrigger": "4_0_99" },
+        { "item": "Steckdose", "id": 3, "idTrigger": "4_0_98" }
+      ]},
+      { "room": "Wohnzimmer", "id": 5, "items": [
+        { "item": "Alles", "id": 1, "idTrigger": "4_0_6" },
+        { "item": "Gemütlich", "id": 2, "idTrigger": "4_0_7" },
+        { "item": "Fernsehen", "id": 3, "idTrigger": "4_0_5" },
+        { "item": "Kaltweiss", "id": 4, "idTrigger": "4_0_13" },
+        { "item": "Pink",  "id": 5, "idTrigger": "4_0_12" },
+        { "item": "Warmweiss", "id": 6, "idTrigger": "4_0_11" },
+        { "item": "Weihnachten1", "id": 7, "idTrigger": "4_0_1" },
+        { "item": "Weihnachten2", "id": 8, "idTrigger": "4_0_2" }
+      ]},
+      { "room": "Kimi", "id": 6, "items": [
+        { "item": "Kaltweiss", "id": 1, "idTrigger": "4_0_10" },
+        { "item": "Rot", "id": 2, "idSwitch": "0_1_151", "idPercentage": "0_4_151" },
+        { "item": "Grün", "id": 3, "idSwitch": "0_1_152", "idPercentage": "0_4_152" },
+        { "item": "Blau", "id": 4, "idSwitch": "0_1_153", "idPercentage": "0_4_153" },
+        { "item": "Warmweiss",  "id": 5, "idSwitch": "0_1_150", "idPercentage": "0_4_150" },
+        { "item": "Deckenlampe", "id": 6, "idSwitch": "0_1_27", "idPercentage": "0_4_27" }
+      ]}
+  ]
+}

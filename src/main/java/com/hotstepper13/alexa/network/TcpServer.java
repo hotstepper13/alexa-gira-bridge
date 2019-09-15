@@ -21,10 +21,8 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.Inet4Address;
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
-import java.util.List;
 
 import static spark.Spark.get;
 import static spark.Spark.put;
@@ -35,11 +33,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
-import com.hotstepper13.alexa.configuration.Config;
+import com.hotstepper13.alexa.GiraBridge;
 import com.hotstepper13.alexa.configuration.Constants;
 import com.hotstepper13.alexa.gira.Trigger;
 import com.hotstepper13.alexa.gira.beans.Appliance;
-import com.hotstepper13.alexa.gira.beans.DiscoveryItem;
 import com.hotstepper13.alexa.gira.beans.HueStateChange;
 
 public class TcpServer {
@@ -48,19 +45,18 @@ public class TcpServer {
 
 	private int port;
 	private InetAddress ip;
-	private static ArrayList<Appliance> appliances;
+	//private static List<Appliance> appliances;
 	private Trigger trigger;
 	private Gson gson;
 
-	public TcpServer(int port, List<Appliance> appliances) {
-		TcpServer.appliances = new ArrayList<Appliance>(appliances);
-		this.port = port;
-		this.trigger = new Trigger(TcpServer.appliances);
+	public TcpServer() {
+		this.port = GiraBridge.port;
+		this.trigger = new Trigger(GiraBridge.discovery.appliances);
 		this.gson = new Gson();
 		this.ip = this.getLocalAddress();
 		log.info("TCP Server found IP: " + this.ip.getHostAddress());
-		if (!Config.getHttpIp().equals("")) {
-			log.info("Overwriting IP for Discovery calls with: " + Config.getHttpIp());
+		if (!GiraBridge.config.getBridgeConfig().getIp().equals("")) {
+			log.info("Overwriting IP for Discovery calls with: " + GiraBridge.config.getBridgeConfig().getIp());
 		}
 
 		// configure port for spark server
@@ -70,10 +66,10 @@ public class TcpServer {
 		get("/description.xml", "application/xml; charset=utf-8", (request, response) -> {
 			log.info("Received request to /description.xml from " + request.ip());
 			Object[] params;
-			if (Config.getHttpIp().equals("")) {
+			if (GiraBridge.config.getBridgeConfig().getIp().equals("")) {
 				params = new Object[] { this.ip, "" + this.port };
 			} else {
-				params = new Object[] { Config.getHttpIp(), "" + this.port };
+				params = new Object[] { GiraBridge.config.getBridgeConfig().getIp(), "" + this.port };
 			}
 			String xml = MessageFormat.format(Constants.HUE_DESCRIPTION, params);
 			response.type("application/xml; charset=utf-8");
@@ -114,6 +110,7 @@ public class TcpServer {
 			response.header("Access-Control-Allow-Origin", request.headers("Origin"));
 			response.type("application/json");
 			response.status(HttpStatus.SC_OK);
+			log.debug(request.body());
 			HueStateChange state = this.gson.fromJson(request.body(), HueStateChange.class);
 			boolean result = trigger.pull(new Integer(request.params(":id")).intValue(), state);
 
@@ -132,7 +129,7 @@ public class TcpServer {
 			response.header("Access-Control-Allow-Origin", request.headers("Origin"));
 			response.type("application/json");
 			response.status(HttpStatus.SC_OK);
-			return TcpServer.appliances.get(new Integer(request.params(":id")) - 1).getHueDevice();
+			return GiraBridge.discovery.appliances.get(new Integer(request.params(":id")) - 1).getHueDevice();
 		});
 
 	}
@@ -144,10 +141,10 @@ public class TcpServer {
 	private String buildLights() {
 		log.info("Handle lights request");
 		String response = "{\r\n";
-		for (int i = 0; i < appliances.size(); i++) {
-			appliances.get(i).setHueId(i + 1);
-			response = response + "	\"" + appliances.get(i).getHueId() + "\": " + appliances.get(i).getHueDevice();
-			if (i < appliances.size() - 1) {
+		for (int i = 0; i < GiraBridge.discovery.appliances.size(); i++) {
+			GiraBridge.discovery.appliances.get(i).setHueId(i + 1);
+			response = response + "	\"" + GiraBridge.discovery.appliances.get(i).getHueId() + "\": " + GiraBridge.discovery.appliances.get(i).getHueDevice();
+			if (i < GiraBridge.discovery.appliances.size() - 1) {
 				response = response + ",";
 			}
 		}
@@ -170,38 +167,32 @@ public class TcpServer {
 	}
 
 	private String buildStateForID(int id) {
-
 		// Bugfix if devices are removed
-		if (id > TcpServer.appliances.size()) {
-			log.info(
-					"Called ID was larger amount of Appliances in List. Assume Discovery with removed Appliance was triggered");
+		if (id > GiraBridge.discovery.appliances.size()) {
+			log.info("Called ID was larger amount of Appliances in List. Assume Discovery with removed Appliance was triggered");
 			log.info("Return dummy device with Hue State");
 			Appliance a = new Appliance("Discovery", "0", Arrays.asList(Appliance.Actions.turnOn));
 			a.setOn(true);
 			return a.getHueDevice();
 		}
 
-		Appliance app = TcpServer.appliances.get(id - 1);
-		Gson gson = new Gson();
-		DiscoveryItem onOff;
-		DiscoveryItem percent;
-		Object[] params;
+		Appliance app = GiraBridge.discovery.appliances.get(id - 1);
 		if (app.getActions().contains(Appliance.Actions.turnOff) || app.getActions().contains(Appliance.Actions.turnOn)) {
 			if (app.getApplianceId().equals("0")) {
 				app.setOn(true);
 			} else {
 				// Fetch OnOff
-				params = new Object[] { Config.getHomeserverIp(), Config.getHomeserverPort(), app.getApplianceId(),
-						Config.getToken() };
-				if (Config.isEnableSsl()) {
-					onOff = gson.fromJson(
-							Util.triggerHttpGetWithCustomSSL(MessageFormat.format(Constants.ONOFFVALUE_URL, params)),
-							DiscoveryItem.class);
+				if(app.getIdSwitch() != null) {
+					if(GiraBridge.hs.getStatusForSwitch(app.getIdSwitch()) > 0) {
+						app.setOn(true);
+					}
+				} else if (app.getIdTrigger() != null){
+					if(GiraBridge.hs.getStatusForTrigger(app.getIdTrigger()) > 0) {
+						app.setOn(true);
+					}
 				} else {
-					onOff = gson.fromJson(Util.triggerHttpGet(MessageFormat.format(Constants.ONOFFVALUE_URL, params)),
-							DiscoveryItem.class);
+					log.error("No Trigger or Switch ID found");
 				}
-				app.setOn(onOff.getPayload().getOnOff().isValue());
 			}
 		}
 
@@ -209,25 +200,19 @@ public class TcpServer {
 				|| app.getActions().contains(Appliance.Actions.incrementPercentage)
 				|| app.getActions().contains(Appliance.Actions.decrementPercentage)) {
 			// Fetch Percent
-			params = new Object[] { Config.getHomeserverIp(), Config.getHomeserverPort(), app.getApplianceId(),
-					Config.getToken() };
-			if (Config.isEnableSsl()) {
-				percent = gson.fromJson(
-						Util.triggerHttpGetWithCustomSSL(MessageFormat.format(Constants.PERCENTVALUE_URL, params)),
-						DiscoveryItem.class);
+			if(app.getIdPercentage() != null) {
+				double returnValue = GiraBridge.hs.getStatusForPercentage(app.getIdPercentage());
+				if (returnValue == 100.0) {
+					app.setBri(255);
+				} else if (returnValue > 0) {
+					app.setBri(new Double((returnValue / 100) * 255).intValue());
+				} else {
+					app.setBri(0);
+				}
 			} else {
-				percent = gson.fromJson(Util.triggerHttpGet(MessageFormat.format(Constants.PERCENTVALUE_URL, params)),
-						DiscoveryItem.class);
+				log.error("No percentage id found");
 			}
-			// calculate compatible value (0-255)
-			double returnValue = percent.getPayload().getPercent().getValue();
-			if (returnValue == 100.0) {
-				app.setBri(255);
-			} else if (returnValue > 0) {
-				app.setBri(new Double((returnValue / 100) * 255).intValue());
-			} else {
-				app.setBri(0);
-			}
+			
 		}
 
 		return app.getHueDevice();
@@ -252,11 +237,6 @@ public class TcpServer {
 		}
 
 		return null;
-	}
-
-	public static void updateAppliances(List<Appliance> appliances) {
-		log.info("Update Appliances in TcpServer");
-		TcpServer.appliances = new ArrayList<Appliance>(appliances);
 	}
 
 }

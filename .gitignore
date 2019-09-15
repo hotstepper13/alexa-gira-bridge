@@ -12,3 +12,4 @@ buildNumber.properties
 /discovery-example.json
 /hue-datastore.json
 /.settings/
+/configuration.json

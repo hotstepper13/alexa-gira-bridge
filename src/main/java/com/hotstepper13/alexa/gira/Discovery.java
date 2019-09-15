@@ -16,76 +16,84 @@
  *******************************************************************************/
 package com.hotstepper13.alexa.gira;
 
-import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-import com.hotstepper13.alexa.configuration.Config;
-import com.hotstepper13.alexa.configuration.Constants;
+import com.hotstepper13.alexa.GiraBridge;
 import com.hotstepper13.alexa.gira.beans.Appliance;
-import com.hotstepper13.alexa.gira.beans.DiscoveryItem;
-import com.hotstepper13.alexa.network.Util;
+import com.hotstepper13.alexa.gira.beans.Item;
+import com.hotstepper13.alexa.gira.beans.Room;
 
 public class Discovery {
 
 	private final static Logger log = LoggerFactory.getLogger(Discovery.class);
 
-	private String objectJson = "";
-	private String discovery_url;
-	private DiscoveryItem discoveryItem;
-	private final static int EXIT_ERROR = 0;
-
-	public Discovery() {
-		Object[] params = new Object[] { Config.getHomeserverIp(), Config.getHomeserverPort(), Config.getToken() };
-		this.discovery_url = MessageFormat.format(Constants.DISCOVERY_URL, params);
-		fetchDiscoverySSL();
-		parseDiscoveryResponse();
-	}
+	public List<Appliance> appliances = new ArrayList<Appliance>();
 
 	/**
-	 * This Discovery requires a custom logic module to be installed in the
-	 * homeserver
-	 * 
-	 * see https://github.com/Picpol/HS-AmazonEcho
-	 * https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/1010815-amazon-echo-logikbaustein
+	 * Custom Module is no longer required as configuration will be read from file and
+	 * Homeserver offers a native rest api
 	 */
-	private void fetchDiscoverySSL() {
-		log.debug("Fetching Objects from Homeserver using url: " + this.discovery_url);
-
-		if (Config.isEnableSsl()) {
-			this.objectJson = Util.triggerHttpGetWithCustomSSL(this.discovery_url);
-		} else {
-			this.objectJson = Util.triggerHttpGet(this.discovery_url);
-		}
+	public Discovery() {
+		appliances.add(new Appliance("Discovery", "0", Arrays.asList(Appliance.Actions.turnOn)));
+		convertItemsToAppliances();
+		reviewDiscoveryResponse();
 
 	}
 
-	private void parseDiscoveryResponse() {
-		Gson gson = new Gson();
-		this.discoveryItem = gson.fromJson(this.objectJson, DiscoveryItem.class);
-		if (this.discoveryItem == null || this.discoveryItem.getPayload() == null
-				|| this.discoveryItem.getPayload().getDiscoveredAppliances() == null) {
-			log.error("Cannot fetch any appliance from homeserver. Check your Configuration and SSL certificate.");
-			log.error(
-					"If you have not enabled ssl in homeserver, you may switch to non ssl mode by passing \"--enable-ssl false\".");
-			log.error("The software will now terminate");
-			System.exit(EXIT_ERROR);
+	private void convertItemsToAppliances() {
+		Iterator<Room> rooms = GiraBridge.config.getRooms().iterator();
+		while(rooms.hasNext()) {
+			Room room = rooms.next();
+			Iterator<Item> items = room.getItems().iterator();
+			while(items.hasNext()) {
+				Appliance appliance = new Appliance();
+				Item item = items.next();
+				
+				appliance.setFriendlyName(room.getRoomName() + " " + item.getItemName());
+				appliance.setApplianceId(room.getId() + "_" + item.getId());
+				
+				List<Appliance.Actions> actions = new ArrayList<Appliance.Actions>();
+				
+				if(item.getIdTrigger() != null) {
+					actions.add(Appliance.Actions.turnOn);
+					appliance.setIdTrigger(item.getIdTrigger());
+				}
+				
+				if(item.getIdSwitch() != null) {
+					actions.add(Appliance.Actions.turnOn);
+					actions.add(Appliance.Actions.turnOff);
+					appliance.setIdSwitch(item.getIdSwitch());
+				}
+				
+				if(item.getIdPercentage() != null) {
+					actions.add(Appliance.Actions.setPercentage);
+					actions.add(Appliance.Actions.decrementPercentage);
+					actions.add(Appliance.Actions.incrementPercentage);
+					appliance.setIdPercentage(item.getIdPercentage());
+				}
+				appliance.setActions(actions);
+				appliances.add(appliance);
+			}
 		}
+		
+		
+		
+	}
+	
 
-		addDiscoveryAppliance();
-
-		log.info(
-				"Discoverered " + this.discoveryItem.getPayload().getDiscoveredAppliances().size() + " items from Homeserver");
-		Iterator<Appliance> appliances = this.discoveryItem.getPayload().getDiscoveredAppliances().iterator();
+	private void reviewDiscoveryResponse() {
+		log.info("Discoverered " + this.appliances.size() + " items from configuration");
+		Iterator<Appliance> it = appliances.iterator();
 		int i = 0;
-		while (appliances.hasNext()) {
-			Appliance item = (Appliance) appliances.next();
-			log.info(item.getFriendlyName() + " with id " + item.getApplianceId() + " (ListItem: " + i
-					+ ") has the following actions: ");
+		while (it.hasNext()) {
+			Appliance item = it.next();
+			log.info(item.getFriendlyName() + " with id " + item.getApplianceId() + " (ListItem: " + i + ") has the following actions: ");
 			Iterator<Appliance.Actions> actions = item.getActions().iterator();
 			while (actions.hasNext()) {
 				Appliance.Actions action = (Appliance.Actions) actions.next();
@@ -93,19 +101,14 @@ public class Discovery {
 					if (checkSupportedActions(action)) {
 						log.info("  * " + action.name());
 					} else {
-						log.info("  * " + action.name() + " (currently not supported)");
+						log.warn("  * " + action.name() + " (currently not supported)");
 					}
 				} else {
-					log.info("  * unknown action (not supported)");
+					log.warn("  * unknown action (not supported)");
 				}
 			}
 			i++;
 		}
-	}
-
-	private void addDiscoveryAppliance() {
-		Appliance a = new Appliance("Discovery", "0", Arrays.asList(Appliance.Actions.turnOn));
-		this.discoveryItem.getPayload().getDiscoveredAppliances().add(a);
 	}
 
 	private boolean checkSupportedActions(Appliance.Actions action) {
@@ -121,18 +124,6 @@ public class Discovery {
 			return true;
 		}
 		return false;
-	}
-
-	public String getObjectJson() {
-		return objectJson;
-	}
-
-	public String getDiscovery_url() {
-		return discovery_url;
-	}
-
-	public DiscoveryItem getDiscoveryItem() {
-		return discoveryItem;
 	}
 
 }

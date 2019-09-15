@@ -2,13 +2,15 @@
 [![Build Status](https://travis-ci.org/hotstepper13/alexa-gira-bridge.svg?branch=master)](https://travis-ci.org/hotstepper13/alexa-gira-bridge)
 
 # NOTE
-Since there was nearly a year without any change, i messed up the build process. Therefore, releases 2.0.14 and 2.0.15 contained wrongly packed artifacts and i decided to remove them. 
+Version 3.0 and onwards work natively with GiraHomeserver version 4.8 or newer and WITHOUT any additional requirement (no custom skill, no plugin in homeserver needed)
+
+Older versions are no longer supported as the code base has changes completely
 
 # alexa-gira-bridge
 This is a proof of concept / personal application for device discovery using Hue IDs in order to connect with a custom logic module inside the Gira Homeserver in your local network without the need to any lamdba node or internet communication beside the alexa voice services itself.
 
-You will need a custom logic controller in your gir homeserver. This project is able to work with https://github.com/Picpol/HS-AmazonEcho
-You may see the (german) thread in the knx-user-forum https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/1010815-amazon-echo-logikbaustein
+~~You will need a custom logic controller in your gira homeserver. This project is able to work with https://github.com/Picpol/HS-AmazonEcho~~
+~~You may see the (german) thread in the knx-user-forum https://knx-user-forum.de/forum/%C3%B6ffentlicher-bereich/knx-eib-forum/1010815-amazon-echo-logikbaustein~~
 
 Execute without parameters to get usage information
 
@@ -21,6 +23,20 @@ Execute without parameters to get usage information
 - Currently it is only possible to switch on/off and dim a light.
 - If you have a push button activated device (like a scene) in your Gira Homeserver, be sure to attach it with Objecttype "on" or "off" instead of "onOff". The bridge will recognize it and send the correct command to trigger it.
 - If you want to operate this software on a windows pc you must disable locally running upnp services. On windows 10 you have to change a registry value and reboot your system!
+
+## Configuration
+The version 3.0 or newer require a json formatted configuration to store the relevant data. This is needed because the gira bridge uses internal ID´s for the devices. Since a Device could have multiple group addresses for different actions, it was needed to create a mapping.
+The configuration is split into 3 main parts:
+### hsConfig
+Contain the connection information to you local homeserver. The parameters should be self explaining.
+### bridgeConfig
+The ip can be empty and the software will try to determine its own ip. Only in special circumstances like forwarding it might be needed to enter the ip on which the service is reachable.
+The setting in port defines on which port the application is listeing for requests.
+### rooms
+This is the main configuration. Each room containts items. The room name together with the item name determine the command you need to tell your echo to trigger an action.
+Also the id of the room and the item will be used as unique identifier and must not be duplicated. If you add a room or items, ensure that the numbers are unique. See the configuration example for details.
+
+The difference between idTrigger and idSwitch is that the switch will receive on and off commands while the trigger (may be used in scenes) only receives on requests.
 
 ## Running / "Installation"
 - ensure that java can be found in path (test with "java --version")
@@ -35,19 +51,15 @@ I assume most people running this software are able to send a process to backgro
 
 If you want to run the software by yourself:
 
-`java -jar <jarfile> --homeserver-ip <homeserverIp> --homeserver-port <homeserverPort> --token <token> (Optional: --debug true)`
+`java -jar <jarfile> --config-file <path-to-config-file> (Optional: --debug true)`
 
 Optional Parameters:
 
-Enable ssl for bridge<->Homeserver communication (Default true)
-`--enable-ssl false`
-
-Overwrite ip address for discovery reponse (useful while running behind a proxy or in docker, default empty)
-`--http-ip <reachable-ip-address>`
+no optional parameters (beside of debug) available. All settings go to the new config file.
 
 ### Change port of bridge software
 If you want to run the software on another port for whatever reason, you can at least change the service port. (UPNP cannot be changed due to protocol)
-`--bridge-port <int>` will ensure that the service will listen on this port. If this parameter is not provided, the service will start on port 4711.
+The default port is 4711 but it is possible to choose a different port by adjusting it in the configuration file.
 Note: You should provide a port number above 1024, otherwise you will need super user permissions to run the service!
 
 ### Docker
@@ -57,25 +69,21 @@ It might be needed to use host networking.
 
 Further information can be found at: https://hub.docker.com/r/hotstepper13/alexa-gira-bridge/
 
-## Updating Devicelist
-With Release 2.0.11 it is possible to update the devicelist in a running system.
-1. Tell Echo to start discovery by issuing the command "Alexa, turn Discovery on" (Deutsch: "Alexa, schalte Discovery ein")
-2. After you hear the ok from Echo update the Echo Devicelist by telling "Alexa, find my devices" (Deutsch: "Alexa, finde Geräte")
+UPDATE: Release 3.0 change so many things that the docker image has not yet verified! Especially the configuration must be provided, maybe as mount from the outside or custom docker image
 
-**Hint: Sometimes it might be needed to discard all found devices in the Alexa App in order to Match the IDs.**
+## Updating Devicelist
+With the change that all devices are now listed in the configuration, a restart of the bridge to re-read the configuration is needed.
+Afterwards you may ask your echo to discover new items. 
 
 ## Donations
 If you like this software I would appreciate a donation via PayPal: https://www.paypal.me/hotstepper13
 
-Please keep in mind that this would not be possible without the Work of Picpol (who invented the Gira Logic Module that is used as backend). Details for donations to him can be found at his repository information: https://github.com/Picpol/HS-AmazonEcho
+~~Please keep in mind that this would not be possible without the Work of Picpol (who invented the Gira Logic Module that is used as backend). 
+Details for donations to him can be found at his repository information: https://github.com/Picpol/HS-AmazonEcho~~
 
-## Planned / Roadmap
-- ~~Dimming~~ (fully supported since 2.0.4)
-- Temperature (Maybe have to look around for a useful api) 
-- ~~update devices without restarting (with a voice command?!)~~ (fully supported since 2.0.11)
 
 ## Workflow
-- As soon as the application is started, it will connect to the gira homeserver via TCP, fetch the devicelist and build an internal device structure.
+- As soon as the application is started, it will read the configuration and build an internal device structure.
 - After issuing the Alexa/Echo device discovery ("Alexa find my devices" / "Alexa finde meine Geräte") the Echo will send upnp search requests via UDP Broadcast to your local network.
 - The Bridge will respond (via UDP) to this search requests and send the needed information for Echo to discover all devices
 - Now the Alexa/Echo will connect to the Bridge via TCP and fetching the details for existing devices.
