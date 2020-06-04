@@ -2,8 +2,10 @@ sudo: required
 
 language: java
 
+dist: trusty
+
 jdk:
-  - openjdk8
+  - oraclejdk8
 
 services:
   - docker
