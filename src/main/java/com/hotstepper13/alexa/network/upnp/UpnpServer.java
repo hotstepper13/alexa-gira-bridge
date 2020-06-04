@@ -57,9 +57,9 @@ public class UpnpServer extends Thread {
 				this.msocket.receive(packet);
 				String message = new String(packet.getData(), "UTF-8");
 				if (message.contains("M-SEARCH")) {
-					log.debug("Received Search Request from " + packet.getSocketAddress().toString() + ":\n" + message);
+					log.debug("Received Search Request from " + packet.getAddress().getHostAddress().toString() + ":" + packet.getPort() + ":\n" + message);
 					if (this.checkSearch(message) && packet.getPort() == 50000) {
-						log.info("DiscoveryResponse needed for " + packet.getAddress() + ":" + packet.getPort());
+						log.info("DiscoveryResponse needed for " + packet.getAddress().getHostAddress().toString() + ":" + packet.getPort());
 						this.sendDiscoveryResponse(packet.getAddress(), packet.getPort());
 					}
 				}
@@ -93,7 +93,7 @@ public class UpnpServer extends Thread {
 		} else {
 			response_params = new Object[] { GiraBridge.config.getBridgeConfig().getIp(), "" + this.port, Util.getHueBridgeIdFromMac(this.address),Util.getSNUUIDFromMac(this.address) };
 		}
-		UDPSender us = new UDPSender(requestAddress.getHostAddress(), requestPort);
+		UDPSender us = new UDPSender(requestAddress, requestPort);
 		us.sendMessage(MessageFormat.format(Constants.responseTemplate1, response_params));
 		us.sendMessage(MessageFormat.format(Constants.responseTemplate2, response_params));
 		us.sendMessage(MessageFormat.format(Constants.responseTemplate3, response_params));
