@@ -37,14 +37,6 @@ public class Homeserver {
 		this.hsConfig = config;
 	}
 	
-	
-	// get status https://10.18.96.224/endpoints/call?key=CO@0_4_108&method=get&user=AmazonEcho&pw=Universe2019!
-	// value HomeserverResponse.getData.getValue()
-	
-	// set value https://10.18.96.224/endpoints/call?key=CO@4_0_0&method=set&value=1&user=AmazonEcho&pw=Universe2019!
-	
-	
-	
 	public int getStatusForTrigger(String key) {
 		return getValueForKey(key).getData().getValue().intValue();
 	}
